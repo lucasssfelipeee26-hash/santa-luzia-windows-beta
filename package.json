@@ -1,6 +1,6 @@
 {
   "name": "santa-luzia-windows-beta",
-  "version": "0.1.0-beta.1",
+  "version": "1.0.6",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack -H 0.0.0.0",
