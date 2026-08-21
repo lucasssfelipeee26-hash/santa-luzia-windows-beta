@@ -1,0 +1,159 @@
+name: Publicar Santa Luzia Windows Beta
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: santa-luzia-windows-beta-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows-beta:
+    runs-on: windows-latest
+    timeout-minutes: 50
+    env:
+      AUTH_SECRET: ci-windows-beta-santa-luzia-12345678901234567890
+      CAPACITOR_SERVER_URL: https://comunidade-santa-luzia-production.up.railway.app
+    steps:
+      - name: Checkout canal Beta Windows
+        uses: actions/checkout@v4
+        with:
+          path: beta
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Obter base estável do Android code 18
+        shell: pwsh
+        run: |
+          $beta = Get-Content beta/config/windows-beta.json | ConvertFrom-Json
+          git clone https://github.com/lucasssfelipeee26-hash/comunidade-santa-luzia.git app
+          Push-Location app
+          git checkout $beta.androidBaseCommit
+          Pop-Location
+
+      - name: Aplicar arquivos exclusivos da Beta Windows
+        shell: pwsh
+        run: |
+          robocopy beta app /E /XD .git .github /XF README.md
+          if ($LASTEXITCODE -gt 7) { throw "Falha ao aplicar overlay da Beta Windows: $LASTEXITCODE" }
+          $beta = Get-Content app/config/windows-beta.json | ConvertFrom-Json
+          if ($beta.updateRepository -ne $env:GITHUB_REPOSITORY) {
+            throw "Repositório de atualização incorreto: $($beta.updateRepository)"
+          }
+
+      - name: Instalar dependências
+        working-directory: app
+        shell: pwsh
+        run: npm install --no-audit --no-fund
+
+      - name: Validar TypeScript
+        working-directory: app
+        shell: pwsh
+        run: npx tsc --noEmit
+
+      - name: Auditar robustez
+        working-directory: app
+        shell: pwsh
+        run: npm run audit:robustez
+
+      - name: Gerar build web
+        working-directory: app
+        shell: pwsh
+        run: npm run build
+
+      - name: Gerar Setup e Portable Windows
+        working-directory: app
+        shell: pwsh
+        run: npm run windows:beta:dist
+
+      - name: Validar artefatos e metadados de atualização
+        shell: pwsh
+        run: |
+          $beta = Get-Content app/config/windows-beta.json | ConvertFrom-Json
+          $setup = Get-ChildItem app/dist-windows -Filter "Santa-Luzia-Beta-Setup-$($beta.versionName)-x64.exe" | Select-Object -First 1
+          $portable = Get-ChildItem app/dist-windows -Filter "Santa-Luzia-Beta-Portable-$($beta.versionName)-x64.exe" | Select-Object -First 1
+          if (-not $setup) { throw "Setup EXE não foi gerado." }
+          if (-not $portable) { throw "Portable EXE não foi gerado." }
+          if ($setup.Length -lt 20MB) { throw "Setup EXE é menor que o esperado." }
+          if ($portable.Length -lt 20MB) { throw "Portable EXE é menor que o esperado." }
+          $updateMetadata = Get-ChildItem app/dist-windows -File | Where-Object { $_.Name -match '^(latest|beta).*\.yml$' } | Select-Object -First 1
+          if (-not $updateMetadata) { throw "Metadado do auto-update não foi gerado." }
+          $setupSha = (Get-FileHash $setup.FullName -Algorithm SHA256).Hash.ToLower()
+          $portableSha = (Get-FileHash $portable.FullName -Algorithm SHA256).Hash.ToLower()
+          "WINDOWS_BETA_VERSION=$($beta.versionName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "WINDOWS_BETA_SETUP=$($setup.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "WINDOWS_BETA_PORTABLE=$($portable.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "WINDOWS_BETA_SETUP_SIZE=$($setup.Length)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "WINDOWS_BETA_PORTABLE_SIZE=$($portable.Length)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "WINDOWS_BETA_SETUP_SHA=$setupSha" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          "WINDOWS_BETA_PORTABLE_SHA=$portableSha" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Guardar artefatos para validação
+        uses: actions/upload-artifact@v4
+        with:
+          name: santa-luzia-windows-beta-${{ env.WINDOWS_BETA_VERSION }}
+          path: |
+            app/dist-windows/*.exe
+            app/dist-windows/*.blockmap
+            app/dist-windows/*.yml
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publicar prerelease Windows no GitHub
+        if: github.ref == 'refs/heads/main'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "windows-beta-v$env:WINDOWS_BETA_VERSION"
+          $notes = @"
+          Santa Luzia Beta para Windows — $env:WINDOWS_BETA_VERSION
+
+          Canal independente do Android para validar mudanças antes da publicação no celular.
+
+          Arquivos:
+          - Setup: recomendado; recebe as próximas Betas automaticamente pelo GitHub.
+          - Portable: execução rápida para testes; não substitui a instalação principal.
+
+          Android estável permanece separado no repositório comunidade-santa-luzia.
+          "@
+          $notesPath = "$env:RUNNER_TEMP\windows-beta-notes.md"
+          $notes | Set-Content -Path $notesPath -Encoding utf8
+          $assets = Get-ChildItem app/dist-windows -File | Where-Object { $_.Extension -in '.exe','.blockmap','.yml' } | ForEach-Object { $_.FullName }
+          if (gh release view $tag --repo $env:GITHUB_REPOSITORY 2>$null) {
+            gh release upload $tag $assets --clobber --repo $env:GITHUB_REPOSITORY
+            gh release edit $tag --prerelease --title "Santa Luzia Beta Windows $env:WINDOWS_BETA_VERSION" --notes-file $notesPath --repo $env:GITHUB_REPOSITORY
+          } else {
+            gh release create $tag $assets --prerelease --title "Santa Luzia Beta Windows $env:WINDOWS_BETA_VERSION" --notes-file $notesPath --repo $env:GITHUB_REPOSITORY
+          }
+
+      - name: Registrar recibo da publicação
+        if: github.ref == 'refs/heads/main'
+        working-directory: beta
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path releases | Out-Null
+          $receipt = [ordered]@{
+            publishedAt = (Get-Date).ToUniversalTime().ToString('o')
+            versionName = $env:WINDOWS_BETA_VERSION
+            repository = $env:GITHUB_REPOSITORY
+            setup = [ordered]@{ file = (Split-Path $env:WINDOWS_BETA_SETUP -Leaf); size = [int64]$env:WINDOWS_BETA_SETUP_SIZE; sha256 = $env:WINDOWS_BETA_SETUP_SHA }
+            portable = [ordered]@{ file = (Split-Path $env:WINDOWS_BETA_PORTABLE -Leaf); size = [int64]$env:WINDOWS_BETA_PORTABLE_SIZE; sha256 = $env:WINDOWS_BETA_PORTABLE_SHA }
+            androidChannel = 'lucasssfelipeee26-hash/comunidade-santa-luzia — 1.0.6/code18'
+          }
+          $receipt | ConvertTo-Json -Depth 5 | Set-Content releases/windows-beta-latest.json -Encoding utf8
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- releases/windows-beta-latest.json
+          git commit -m "Registra Windows Beta $env:WINDOWS_BETA_VERSION" || exit 0
+          git push origin HEAD:main
