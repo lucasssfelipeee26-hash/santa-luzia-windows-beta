@@ -45,11 +45,14 @@ jobs:
         shell: pwsh
         run: |
           robocopy beta app /E /XD .git .github /XF README.md
-          if ($LASTEXITCODE -gt 7) { throw "Falha ao aplicar overlay da Beta Windows: $LASTEXITCODE" }
+          $copyExit = $LASTEXITCODE
+          if ($copyExit -gt 7) { throw "Falha ao aplicar overlay da Beta Windows: $copyExit" }
+          $global:LASTEXITCODE = 0
           $beta = Get-Content app/config/windows-beta.json | ConvertFrom-Json
           if ($beta.updateRepository -ne $env:GITHUB_REPOSITORY) {
             throw "Repositório de atualização incorreto: $($beta.updateRepository)"
           }
+          exit 0
 
       - name: Instalar dependências
         working-directory: app
