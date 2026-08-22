@@ -5,6 +5,7 @@ module.exports = {
   appId: "br.com.comunidadesantaluzia.beta",
   productName: beta.appName,
   generateUpdatesFilesForAllChannels: true,
+  compression: "store",
   extraMetadata: {
     main: "electron/main.cjs",
     version: beta.versionName,
@@ -36,12 +37,12 @@ module.exports = {
     artifactName: `Santa-Luzia-Beta-Setup-${beta.versionName}-x64.\${ext}`,
   },
   nsis: {
-    oneClick: false,
+    oneClick: true,
     perMachine: false,
-    allowToChangeInstallationDirectory: true,
-    createDesktopShortcut: true,
+    createDesktopShortcut: "always",
     createStartMenuShortcut: true,
     shortcutName: "Santa Luzia Beta",
+    runAfterFinish: true,
   },
   portable: {
     artifactName: `Santa-Luzia-Beta-Portable-${beta.versionName}-x64.\${ext}`,
