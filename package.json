@@ -17,6 +17,7 @@
     "android:open": "npx cap open android",
     "android:run": "npx cap run android",
     "test:manifest-updater": "node --test electron/manifest-updater.test.cjs",
+    "test:remote-runtime": "node --test electron/remote-runtime-updater.test.cjs",
     "test:windows-polish": "node --test electron/windows-polish.test.cjs",
     "windows:beta": "electron electron/main.cjs",
     "windows:beta:dist": "electron-builder --config electron-builder.config.cjs --win --x64 --publish never"

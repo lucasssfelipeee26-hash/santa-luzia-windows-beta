@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths-ignore:
       - "releases/**"
+      - "runtime/**"
       - "notes/**"
       - "README.md"
   pull_request:
@@ -64,6 +65,7 @@ jobs:
         run: |
           node --check electron/main.cjs
           node --check electron/manifest-updater.cjs
+          node --check electron/remote-runtime-updater.cjs
           node --check electron/preload-v5.cjs
           node --check electron/behavior-fixes.js
           $main = Get-Content electron/main.cjs -Raw
@@ -111,6 +113,19 @@ jobs:
         working-directory: app
         shell: pwsh
         run: npm run test:windows-polish
+
+      - name: Testar canal remoto exclusivo do Windows
+        working-directory: app
+        shell: pwsh
+        run: |
+          npm run test:remote-runtime
+          node --check runtime/windows-beta-runtime.js
+          $manifest = Get-Content releases/windows-beta-runtime.json | ConvertFrom-Json
+          $script = Get-Item $manifest.script.path
+          $sha = (Get-FileHash $script.FullName -Algorithm SHA256).Hash.ToLower()
+          if ($script.Length -ne [int64]$manifest.script.size) { throw "Tamanho do runtime remoto diverge do manifesto." }
+          if ($sha -ne $manifest.script.sha256) { throw "SHA-256 do runtime remoto diverge do manifesto." }
+          if ($manifest.repository -ne $env:GITHUB_REPOSITORY) { throw "Runtime remoto aponta para outro repositório." }
 
       - name: Instalar dependências
         working-directory: app
@@ -225,12 +240,12 @@ jobs:
           $notes = @"
           Santa Luzia Beta para Windows — $env:WINDOWS_BETA_VERSION
 
-          Mantém todas as correções da Beta anterior e aplica os ajustes solicitados no vídeo.
+          Mantém todas as correções da Beta anterior e inaugura o canal remoto exclusivo do Windows.
 
-          A navegação inferior volta à geometria original do Android, sem sobreposição da camada Windows.
-          O ranking passa a usar um único troféu 3D, sem estrela central e com o halo luminoso preservado.
-          O acompanhamento semanal fica dentro do ranking, isolado pelo ID da conta autenticada e
-          visível somente para acólitos, coroinhas e moderadores. O auto-update duplo da Beta 8 é mantido.
+          Depois desta instalação, ajustes de interface da Beta podem chegar diretamente pelo servidor,
+          sem reinstalação. O Electron consulta um manifesto exclusivo, valida tamanho e SHA-256 do script
+          e só então aplica a revisão. O Android e o servidor compartilhado permanecem intactos.
+          O auto-update nativo duplo da Beta 8 também é mantido para mudanças do executável.
           O próprio workflow testa os mecanismos e instala o Setup em um Windows real antes de publicar.
 
           O Android estável 1.0.6/code18 permanece sem estas alterações.

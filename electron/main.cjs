@@ -5,6 +5,7 @@ const path = require("node:path")
 const { spawn } = require("node:child_process")
 const beta = require("../config/windows-beta.json")
 const manifestUpdater = require("./manifest-updater.cjs")
+const remoteRuntimeUpdater = require("./remote-runtime-updater.cjs")
 
 const APP_URL = process.env.SANTA_LUZIA_WINDOWS_BETA_URL || beta.serverUrl
 const ALLOWED_ORIGIN = new URL(APP_URL).origin
@@ -13,6 +14,36 @@ let mainWindow = null
 let updatePromptOpen = false
 let updateCheckRunning = false
 let updateInterval = null
+let remoteRuntimeInterval = null
+let remoteRuntimeRevision = 0
+let remoteRuntimeScript = ""
+let remoteRuntimeCheckRunning = false
+
+async function applyRemoteRuntime(win = mainWindow) {
+  if (!remoteRuntimeScript || !win || win.isDestroyed() || win.webContents.isLoading()) return false
+  await win.webContents.executeJavaScript(remoteRuntimeScript, true)
+  console.log(`Canal remoto Windows aplicado. Revisão: ${remoteRuntimeRevision}`)
+  return true
+}
+
+async function checkRemoteRuntime(forceApply = false) {
+  if (!app.isPackaged || remoteRuntimeCheckRunning) return
+  remoteRuntimeCheckRunning = true
+  try {
+    const manifest = await remoteRuntimeUpdater.fetchRuntimeManifest(beta.updateRepository)
+    if (manifest.revision > remoteRuntimeRevision) {
+      remoteRuntimeScript = await remoteRuntimeUpdater.fetchValidatedRuntime(beta.updateRepository, manifest)
+      remoteRuntimeRevision = manifest.revision
+      await applyRemoteRuntime()
+    } else if (forceApply) {
+      await applyRemoteRuntime()
+    }
+  } catch (error) {
+    console.error("Falha no canal remoto exclusivo do Windows Beta:", error?.message || error)
+  } finally {
+    remoteRuntimeCheckRunning = false
+  }
+}
 
 async function installFromManifest(manifest) {
   if (updatePromptOpen || !mainWindow || mainWindow.isDestroyed()) return false
@@ -131,6 +162,7 @@ function createWindow() {
     aplicarCssNativo(win)
     aplicarCorrecoesComportamentais(win)
     aplicarPolimentoWindows(win)
+    void checkRemoteRuntime(true)
   })
 
   win.webContents.setWindowOpenHandler(({ url }) => {
@@ -251,9 +283,17 @@ function configureUpdater() {
   })
 }
 
+function configureRemoteRuntime() {
+  if (!app.isPackaged) return
+  setTimeout(() => void checkRemoteRuntime(true), 1800)
+  remoteRuntimeInterval = setInterval(() => void checkRemoteRuntime(false), 5 * 60 * 1000)
+  app.on("browser-window-focus", () => void checkRemoteRuntime(false))
+}
+
 app.whenReady().then(() => {
   createWindow()
   configureUpdater()
+  configureRemoteRuntime()
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
@@ -261,6 +301,7 @@ app.whenReady().then(() => {
 
 app.on("before-quit", () => {
   if (updateInterval) clearInterval(updateInterval)
+  if (remoteRuntimeInterval) clearInterval(remoteRuntimeInterval)
 })
 
 app.on("window-all-closed", () => {

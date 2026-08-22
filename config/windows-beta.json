@@ -1,7 +1,7 @@
 {
   "channel": "windows-beta",
-  "versionName": "0.1.0-beta.9",
-  "buildNumber": 9,
+  "versionName": "0.1.0-beta.10",
+  "buildNumber": 10,
   "appName": "Santa Luzia Beta",
   "serverUrl": "https://comunidade-santa-luzia-production.up.railway.app",
   "updateRepository": "lucasssfelipeee26-hash/santa-luzia-windows-beta",

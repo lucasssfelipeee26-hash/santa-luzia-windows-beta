@@ -1,0 +1,2 @@
+runtime/*.js text eol=lf
+releases/windows-beta-runtime.json text eol=lf
