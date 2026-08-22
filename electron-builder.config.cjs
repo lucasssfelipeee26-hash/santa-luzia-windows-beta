@@ -5,7 +5,7 @@ module.exports = {
   appId: "br.com.comunidadesantaluzia.beta",
   productName: beta.appName,
   generateUpdatesFilesForAllChannels: true,
-  compression: "store",
+  compression: "normal",
   extraMetadata: {
     main: "electron/main.cjs",
     version: beta.versionName,
