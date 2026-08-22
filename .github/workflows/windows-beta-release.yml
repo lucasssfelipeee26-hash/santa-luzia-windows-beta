@@ -3,6 +3,10 @@ name: Publicar Santa Luzia Windows Beta
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "releases/**"
+      - "notes/**"
+      - "README.md"
   pull_request:
     branches: [main]
   workflow_dispatch:
