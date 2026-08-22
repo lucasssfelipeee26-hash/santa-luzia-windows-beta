@@ -18,17 +18,24 @@ function aplicarNavegacaoModerador() {
   const painel = document.querySelector('nav[aria-label="Menu da Área Restrita"]')
   if (!painel) return
 
+  const atalhos = [...painel.querySelectorAll("a.app-nav-tile")]
+  const labels = atalhos.map((atalho) => normalizar(atalho.textContent))
+
+  // O menu do moderador é o único que possui estes atalhos administrativos.
+  // Assim a Beta não altera por engano a navegação dos membros.
+  const menuModerador = labels.includes("Presenças") && labels.includes("Registro") && labels.includes("Cores")
+  if (!menuModerador) return
+
   const grid = painel.querySelector(".app-nav-grid")
   if (grid) {
     grid.dataset.windowsBetaPatch = PATCH_VERSION
-    // Seis atalhos finais: 3 x 2, mantendo proporção semelhante ao Android.
+    // Seis atalhos finais: 3 x 2, equilibrados no mesmo breakpoint visual do Android.
     grid.style.setProperty("grid-template-columns", "repeat(3, minmax(0, 1fr))", "important")
   }
 
-  painel.querySelectorAll("a.app-nav-tile").forEach((atalho) => {
+  atalhos.forEach((atalho) => {
     const label = normalizar(atalho.textContent)
-    const deveOcultar = [...HIDDEN_MODERATOR_SHORTCUTS].some((item) => label === item || label.endsWith(item))
-    if (!deveOcultar) return
+    if (!HIDDEN_MODERATOR_SHORTCUTS.has(label)) return
 
     atalho.dataset.windowsBetaHidden = PATCH_VERSION
     atalho.setAttribute("aria-hidden", "true")
