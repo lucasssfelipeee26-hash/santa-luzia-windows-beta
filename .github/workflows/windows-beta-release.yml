@@ -64,13 +64,18 @@ jobs:
         run: |
           node --check electron/main.cjs
           node --check electron/preload.cjs
+          node --check electron/behavior-fixes.js
           $beta = Get-Content config/windows-beta.json | ConvertFrom-Json
           $preload = Get-Content electron/preload.cjs -Raw
-          if (-not $preload.Contains("PATCH_VERSION = `"$($beta.versionName)`"")) {
-            throw "A versão da camada nativa não está alinhada à Beta $($beta.versionName)."
+          $behavior = Get-Content electron/behavior-fixes.js -Raw
+          if (-not $behavior.Contains("PATCH = `"$($beta.versionName)`"")) {
+            throw "A versão das correções comportamentais não está alinhada à Beta $($beta.versionName)."
           }
           foreach ($marker in @("sl-trophy-3d", "sl-avatar-spin", "sl-ranking-banner", "sl-logo-entry", "sl-page-enter")) {
             if (-not $preload.Contains($marker)) { throw "Motion nativa incompleta: marcador $marker ausente." }
+          }
+          foreach ($marker in @("PRESENCE_KEY", "sl-task-fullscreen", "Conferir resultado", "NAV_TIMEOUT")) {
+            if (-not $behavior.Contains($marker)) { throw "Correção comportamental incompleta: marcador $marker ausente." }
           }
 
       - name: Instalar dependências
@@ -141,17 +146,19 @@ jobs:
           $notes = @"
           Santa Luzia Beta para Windows — $env:WINDOWS_BETA_VERSION
 
-          Canal independente do Android para validar mudanças antes da publicação no celular.
+          Revisão completa do vídeo de validação da Beta Windows.
 
-          Esta Beta inclui a camada Motion nativa de testes: transições, pódio animado,
-          avatares com giro único, halos ouro/prata/bronze, troféu 3D e avisos de
-          mudanças no ranking. O Android estável continua sem estas alterações.
+          Motion mantida: transições, pódio Top 3, avatares com giro único,
+          halos ouro/prata/bronze, troféu 3D, pontuação animada e avisos de ranking.
 
-          Arquivos:
-          - Setup: recomendado; recebe as próximas Betas automaticamente pelo GitHub.
-          - Portable: execução rápida para testes; não substitui a instalação principal.
+          Correções comportamentais desta revisão:
+          - navegação interna e botão Voltar com fallback contra travamento;
+          - presença diária separada de missas/formações, com sequência e reset;
+          - tarefas abertas em tela cheia quando usam Instruções/Enviar resposta;
+          - feedback visual no fluxo Conferir resultado;
+          - animação de transição reaplicada nas mudanças de rota.
 
-          Android estável permanece separado no repositório comunidade-santa-luzia.
+          O Android estável 1.0.6/code18 permanece sem estas alterações.
           "@
           $notesPath = "$env:RUNNER_TEMP\windows-beta-notes.md"
           $notes | Set-Content -Path $notesPath -Encoding utf8
