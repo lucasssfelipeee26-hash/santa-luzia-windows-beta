@@ -27,16 +27,24 @@ function aplicarCssNativo(win) {
   }
 }
 
-function aplicarCorrecoesComportamentais(win) {
+function executarScriptNativo(win, nome, rotulo) {
   try {
-    const arquivo = path.join(__dirname, "behavior-fixes.js")
+    const arquivo = path.join(__dirname, nome)
     const script = fs.readFileSync(arquivo, "utf8")
     void win.webContents.executeJavaScript(script, true).catch((error) => {
-      console.error("Falha ao aplicar correções comportamentais da Beta Windows:", error?.message || error)
+      console.error(`Falha ao aplicar ${rotulo}:`, error?.message || error)
     })
   } catch (error) {
-    console.error("Correções comportamentais da Beta Windows ausentes:", error?.message || error)
+    console.error(`${rotulo} ausente:`, error?.message || error)
   }
+}
+
+function aplicarCorrecoesComportamentais(win) {
+  executarScriptNativo(win, "behavior-fixes.js", "correções comportamentais da Beta Windows")
+}
+
+function aplicarPolimentoBeta7(win) {
+  executarScriptNativo(win, "beta7-polish.js", "polimento visual da Beta 0.1.0-beta.7")
 }
 
 function createWindow() {
@@ -69,6 +77,7 @@ function createWindow() {
   win.webContents.on("did-finish-load", () => {
     aplicarCssNativo(win)
     aplicarCorrecoesComportamentais(win)
+    aplicarPolimentoBeta7(win)
   })
 
   win.webContents.setWindowOpenHandler(({ url }) => {
