@@ -102,6 +102,14 @@ jobs:
             if (-not $main.Contains($marker)) { throw "Correção definitiva do runtime remoto ausente: $marker" }
           }
           if (-not (Test-Path runtime/windows-beta-runtime.js)) { throw "Runtime consolidado não foi empacotado." }
+          $runtime = Get-Content runtime/windows-beta-runtime.js -Raw
+          foreach ($marker in @("enhancePresenceCenter", "ensureEarlyJustification", "organizePublishedScale", "enrichPublishedScaleLiturgy", "organizeFormationManagement", "enhanceDelayClocks", "enhanceProfileAndSoundControls")) {
+            if (-not $runtime.Contains($marker)) { throw "Recurso solicitado ausente do runtime Windows: $marker" }
+          }
+          $whatajong = Get-Content app/api/jogo/whatajong/resultado/route.ts -Raw
+          foreach ($marker in @("salvarRankingAjuste", "pontosAcumuladosPorRodada", "notificarMudancasRanking")) {
+            if (-not $whatajong.Contains($marker)) { throw "Whatajong sem integração completa com o ranking: $marker" }
+          }
           $polish = Get-Content electron/beta7-polish.js -Raw
           foreach ($marker in @("restoreAndroidBottomNav", "sl-b9-private-presence", "allowedPresenceUser", "PRESENCE_KEY_PREFIX")) {
             if (-not $polish.Contains($marker)) { throw "Correção visual e privada da Beta 9 incompleta: $marker ausente." }

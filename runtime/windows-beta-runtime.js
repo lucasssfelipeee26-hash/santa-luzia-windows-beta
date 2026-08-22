@@ -1,7 +1,7 @@
 "use strict";
 
 (() => {
-  const revision = "6";
+  const revision = "7";
   if (document.documentElement.dataset.windowsBetaRuntime === revision) return;
   document.documentElement.dataset.windowsBetaRuntime = revision;
 
@@ -9,7 +9,7 @@
   style.id = "sl-windows-runtime-r2";
   style.textContent = `
     .sl-b7-trophy, .sl-trophy-3d, .sl-r3-card-trophy { display:none !important; }
-    .sl-r6-podium-header > svg, .sl-r6-podium-header > .sl-b7-trophy { display:none !important; }
+    .sl-r6-podium-header > svg, .sl-r6-podium-header > .sl-b7-trophy, .sl-r6-podium-header [data-lucide="trophy"] { display:none !important; }
     .sl-b7-route-shield { display:none !important; }
     .sl-runtime-route-cover { position:fixed; inset:0; z-index:244; pointer-events:none; background:#fffaf0; opacity:0; }
     .sl-r4-presence-locked { margin-top:16px; display:flex; align-items:center; gap:12px; border:1px solid #e2c86f; border-radius:18px; background:linear-gradient(145deg,#fffaf0,#fff3cf); padding:12px 14px; color:#6f541a; font-size:14px; line-height:1.45; box-shadow:0 8px 22px rgba(125,91,21,.08); }
@@ -24,6 +24,48 @@
     .sl-r6-lock-copy span { display:block; margin-top:2px; font-size:12px; }
     .sl-b9-private-presence { animation:slR6DailyLoginEnter 440ms cubic-bezier(.2,.78,.2,1) both !important; }
     @keyframes slR6DailyLoginEnter { 0%{opacity:0;transform:translate3d(0,8px,0) scale(.985)} 72%{opacity:1;transform:translate3d(0,-1px,0) scale(1.002)} 100%{opacity:1;transform:none} }
+    .sl-r7-presence-tools { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:8px; margin:0 0 12px; padding:10px; border:1px solid #e1d7d1; border-radius:16px; background:#fffaf7; }
+    .sl-r7-presence-tools input,.sl-r7-presence-tools select { min-height:40px; min-width:0; border:1px solid #ded5d0; border-radius:12px; background:#fff; padding:8px 11px; color:#3f3537; font-size:12px; outline:none; }
+    .sl-r7-presence-tools input:focus,.sl-r7-presence-tools select:focus { border-color:#8f1934; box-shadow:0 0 0 3px rgba(143,25,52,.10); }
+    .sl-r7-team-hint { grid-column:1/-1; margin:0; color:#756d6f; font-size:11px; }
+    .sl-r7-admin-record { border-left:4px solid #8f1934 !important; }
+    .sl-r7-admin-record[data-kind="advertencia"] { background:linear-gradient(145deg,#fff,#fff1f1) !important; }
+    .sl-r7-admin-record[data-kind="falta"] { background:linear-gradient(145deg,#fff,#fff6f2) !important; }
+    .sl-r7-admin-record[data-kind="justificada"] { background:linear-gradient(145deg,#fff,#fff9e9) !important; border-left-color:#b4871e !important; }
+    .sl-r7-record-chip { display:inline-flex; margin-top:8px; border-radius:999px; padding:4px 9px; background:#f3e7e9; color:#7b1326; font-size:10px; font-weight:800; }
+    .sl-r7-early-justification { margin-top:14px; border:1px solid #ead18a; border-radius:16px; background:#fff9e9; padding:13px; }
+    .sl-r7-early-justification strong { display:block; color:#755611; font-size:13px; }
+    .sl-r7-early-justification textarea { width:100%; min-height:76px; margin-top:9px; resize:vertical; border:1px solid #dec98d; border-radius:12px; background:#fff; padding:10px; font:12px/1.45 inherit; }
+    .sl-r7-early-justification button { width:100%; min-height:42px; margin-top:8px; border:0; border-radius:12px; background:#8f1934; color:#fff; font-size:12px; font-weight:800; }
+    .sl-r7-early-justification p { margin:7px 0 0; font-size:11px; color:#755611; }
+    .sl-r7-scale-list { display:grid !important; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:9px !important; }
+    .sl-r7-scale-person { display:flex; min-width:0; align-items:center; justify-content:space-between; gap:10px; border-radius:14px !important; border-color:#e1d7d1 !important; background:linear-gradient(145deg,#fff,#fffaf4); padding:11px 13px !important; box-shadow:0 5px 14px rgba(70,37,31,.05); }
+    .sl-r7-scale-person strong { min-width:0; color:#2b2224; font-size:13px; }
+    .sl-r7-scale-person span { flex:0 0 auto; color:#756d6f; font-size:10px; text-align:right; }
+    .sl-r7-my-records { margin:0 0 16px; border:1px solid #e1d7d1; border-radius:20px; background:linear-gradient(145deg,#fff,#fff8ef); padding:14px; box-shadow:0 8px 24px rgba(70,37,31,.07); }
+    .sl-r7-my-records h2 { margin:0; color:#6f1d30; font:700 18px Georgia,serif; }
+    .sl-r7-my-records-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:11px; }
+    .sl-r7-my-records-summary span { border-radius:12px; background:#fff; padding:9px 4px; text-align:center; color:#756d6f; font-size:9px; }
+    .sl-r7-my-records-summary b { display:block; color:#7b1326; font-size:20px; }
+    .sl-r7-my-records details { margin-top:10px; border-top:1px solid #eadfd9; padding-top:10px; }
+    .sl-r7-my-records summary { cursor:pointer; color:#5f1423; font-size:12px; font-weight:800; }
+    .sl-r7-my-records li { margin-top:7px; color:#655d5f; font-size:11px; line-height:1.45; }
+    .sl-r7-liturgy-meta { margin:-2px 0 14px; border:1px solid color-mix(in srgb,var(--sl-liturgical-color,#9a731d) 36%,#e8ded6); border-radius:15px; background:#fffaf2; padding:11px 13px; }
+    .sl-r7-liturgy-meta strong { display:block; color:#5f1423; font:700 14px Georgia,serif; }
+    .sl-r7-liturgy-meta span { display:block; margin-top:3px; color:#756d6f; font-size:10px; }
+    .sl-r7-formation-archive-tools { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; margin-bottom:12px; padding:10px; border:1px solid #e1d7d1; border-radius:15px; background:#fffaf7; }
+    .sl-r7-formation-archive-tools input,.sl-r7-formation-archive-tools button { min-height:40px; border:1px solid #ded5d0; border-radius:11px; background:#fff; padding:8px 11px; font-size:12px; }
+    .sl-r7-formation-archive-tools button { background:#7b1326; color:#fff; font-weight:800; }
+    .sl-r7-delay-clock { width:34px; height:34px; flex-basis:34px; border-width:2px; background:#fffdf7; }
+    .sl-r7-delay-clock em { position:absolute; color:#7b1326; font:700 5px/1 Arial,sans-serif; font-style:normal; }
+    .sl-r7-delay-clock .n12{left:50%;top:2px;transform:translateX(-50%)}.sl-r7-delay-clock .n3{right:2px;top:50%;transform:translateY(-50%)}.sl-r7-delay-clock .n6{left:50%;bottom:2px;transform:translateX(-50%)}.sl-r7-delay-clock .n9{left:2px;top:50%;transform:translateY(-50%)}
+    .sl-r7-delay-source { display:none !important; }
+    .sl-r7-compact-sounds { margin-top:8px !important; padding:9px !important; border-radius:15px !important; }
+    .sl-r7-compact-sounds h3 { font-size:13px !important; }
+    .sl-r7-compact-sounds p { font-size:9px !important; line-height:1.25 !important; }
+    .sl-r7-compact-sounds > div:nth-of-type(2) { margin-top:6px !important; gap:4px !important; }
+    .sl-r7-compact-sounds button { min-height:28px !important; padding-top:3px !important; padding-bottom:3px !important; font-size:9px !important; }
+    @media(max-width:520px){.sl-r7-presence-tools{grid-template-columns:1fr 1fr}.sl-r7-presence-tools input{grid-column:1/-1}}
     [data-sl-r4-presence-locked="true"] { opacity:.58; pointer-events:none !important; user-select:none; }
     .sl-r5-card-trophy { --sl-cup-light:#fff0a4; --sl-cup-main:#d4a526; --sl-cup-dark:#76500b; position:absolute; top:8px; right:8px; z-index:18; width:43px; height:43px; pointer-events:none; filter:drop-shadow(0 8px 8px color-mix(in srgb,var(--sl-cup-dark) 42%,transparent)); animation:slR5CupFloat 3.2s ease-in-out infinite; transform-style:preserve-3d; }
     .sl-r5-card-trophy svg { width:100%; height:100%; overflow:visible; }
@@ -47,7 +89,8 @@
     const title = [...document.querySelectorAll("main h1,main h2,main h3")].find((element) => text(element) === "Pódio da equipe");
     const section = title?.closest("section");
     if (!section) return;
-    const header = title.parentElement;
+    let header = title.parentElement;
+    while (header && header !== section && ![...header.children].some((child) => child.matches("svg,.sl-b7-trophy") || child.querySelector?.(':scope > [data-lucide="trophy"]'))) header = header.parentElement;
     header?.classList.add("sl-r6-podium-header");
     const rankOf = (card) => {
       const explicit = Number(card?.dataset?.slRank || card?.dataset?.rank || 0);
@@ -110,15 +153,26 @@
     const control = prompt?.closest("[data-no-pull-refresh]");
     const article = control?.closest("article");
     document.querySelectorAll(".sl-r4-presence-locked").forEach((notice) => { if (notice.closest("article") !== article) notice.remove(); });
-    if (!control || !article) return;
+    if (!control || !article) { ensureEarlyJustification(); return; }
     const schedule = scheduledTimeFromArticle(article);
     const locked = Boolean(schedule && nowForPresence() < schedule.at);
-    control.dataset.slR4PresenceLocked = String(locked);
-    control.querySelectorAll("button,textarea,input").forEach((element) => {
-      if (locked && !element.disabled) { element.disabled = true; element.dataset.slR4Disabled = "true"; }
-      if (!locked && element.dataset.slR4Disabled === "true") { element.disabled = false; delete element.dataset.slR4Disabled; }
-    });
+    const optionButtons = [...control.querySelectorAll('button[role="radio"]')];
+    const presentButton = optionButtons.find((button) => text(button) === "Presente");
+    const absenceButton = optionButtons.find((button) => text(button) === "Falta");
+    const justifiedButton = optionButtons.find((button) => text(button) === "Falta justificada");
+    const alreadyJustified = justifiedButton?.getAttribute("aria-checked") === "true" && Boolean(control.querySelector("textarea")?.value?.trim());
+    absenceButton?.setAttribute("hidden", "");
+    if (absenceButton) absenceButton.style.display = "none";
+    if (presentButton) presentButton.disabled = locked || alreadyJustified;
+    if (justifiedButton) justifiedButton.disabled = alreadyJustified;
+    if (alreadyJustified) control.querySelectorAll("button,textarea,input").forEach((element) => { element.disabled = true; });
+    control.dataset.slR4PresenceLocked = "false";
     let notice = article.querySelector(".sl-r4-presence-locked");
+    if (alreadyJustified) {
+      if (!notice) { notice = document.createElement("div"); notice.className = "sl-r4-presence-locked"; control.before(notice); }
+      notice.innerHTML = '<span class="sl-r6-lock-copy"><strong>Falta justificada registrada</strong><span>Este registro foi encerrado e não pode ser alterado para presença.</span></span>';
+      return;
+    }
     if (!locked) { notice?.remove(); return; }
     if (!notice) {
       notice = document.createElement("div");
@@ -132,6 +186,272 @@
     updatePresenceClock(notice);
   }
 
+  function ensureEarlyJustification() {
+    const sections = [...document.querySelectorAll("main article")];
+    for (const article of sections) {
+      if (!/Presença bloqueada por enquanto/.test(text(article)) || article.querySelector(".sl-r7-early-justification")) continue;
+      const download = article.querySelector('a[href*="/api/formacoes/"][href$="/download"]');
+      const match = download?.getAttribute("href")?.match(/\/api\/formacoes\/([^/]+)\/download/);
+      if (!match) continue;
+      const box = document.createElement("div");
+      box.className = "sl-r7-early-justification";
+      box.innerHTML = '<strong>Não poderá participar?</strong><p>A falta justificada pode ser enviada desde a publicação da formação.</p><textarea maxlength="500" placeholder="Informe o motivo da ausência"></textarea><button type="button">Enviar falta justificada</button><p class="sl-r7-justification-message"></p>';
+      const button = box.querySelector("button");
+      button.addEventListener("click", async () => {
+        const reason = box.querySelector("textarea").value.trim();
+        const message = box.querySelector(".sl-r7-justification-message");
+        if (reason.length < 3) { message.textContent = "Informe o motivo da falta justificada."; return; }
+        button.disabled = true; button.textContent = "Enviando...";
+        try {
+          const response = await fetch(`/api/formacoes/${encodeURIComponent(match[1])}/minha-presenca`, { method:"PUT", credentials:"same-origin", headers:{"Content-Type":"application/json","X-Santa-Luzia-Windows-Beta":"1"}, body:JSON.stringify({situacao:"justificada",justificativa:reason}) });
+          const data = await response.json().catch(() => null);
+          if (!response.ok) throw new Error(data?.erro || "Não foi possível enviar a justificativa.");
+          box.innerHTML = '<strong>Falta justificada registrada</strong><p>Este registro foi encerrado e não poderá ser alterado para presença.</p>';
+        } catch (error) { message.textContent = error?.message || "Falha ao enviar."; button.disabled = false; button.textContent = "Enviar falta justificada"; }
+      });
+      const lock = [...article.querySelectorAll("div")].find((element) => /Presença bloqueada por enquanto/.test(text(element)));
+      (lock || download)?.before(box);
+    }
+  }
+
+  let adminRecordsPromise = null;
+  function loadAdminRecords() {
+    if (!adminRecordsPromise) adminRecordsPromise = fetch("/api/equipe", { cache:"no-store", credentials:"same-origin" })
+      .then((response) => response.ok ? response.json() : null).then((data) => Array.isArray(data?.equipe) ? data.equipe : []).catch(() => []);
+    return adminRecordsPromise;
+  }
+
+  function applyPresenceFilters(panel, kind) {
+    const tools = panel.previousElementSibling?.classList?.contains("sl-r7-presence-tools") ? panel.previousElementSibling : null;
+    if (!tools) return;
+    const query = text(tools.querySelector("input")).toLocaleLowerCase("pt-BR");
+    const status = tools.querySelector('[data-filter="status"]')?.value || "todos";
+    const year = tools.querySelector('[data-filter="year"]')?.value || "todos";
+    panel.querySelectorAll(":scope > article").forEach((card) => {
+      const content = text(card).toLocaleLowerCase("pt-BR");
+      const matchesQuery = !query || content.includes(query);
+      const matchesStatus = status === "todos" || content.includes(status);
+      const matchesYear = year === "todos" || content.includes(year);
+      const waitForSearch = kind === "equipe" && !query;
+      card.style.display = matchesQuery && matchesStatus && matchesYear && !waitForSearch ? "" : "none";
+    });
+  }
+
+  function ensurePresenceTools(panel, kind) {
+    let tools = panel.previousElementSibling?.classList?.contains("sl-r7-presence-tools") ? panel.previousElementSibling : null;
+    if (tools?.dataset.kind !== kind) tools?.remove(), tools = null;
+    if (!tools) {
+      tools = document.createElement("div");
+      tools.className = "sl-r7-presence-tools";
+      tools.dataset.kind = kind;
+      const years = [...new Set([...panel.querySelectorAll("article")].flatMap((card) => text(card).match(/\b20\d{2}\b/g) || []))].sort().reverse();
+      tools.innerHTML = `<input type="search" aria-label="Pesquisar registros" placeholder="Pesquisar por nome, formação ou justificativa"><select data-filter="status" aria-label="Filtrar situação"><option value="todos">Todas as situações</option><option value="presente">Presentes</option><option value="falta">Faltas</option><option value="justificada">Justificadas</option><option value="advertência">Advertências</option></select><select data-filter="year" aria-label="Filtrar ano"><option value="todos">Todos os anos</option>${years.map((year) => `<option value="${year}">${year}</option>`).join("")}</select>${kind === "equipe" ? '<p class="sl-r7-team-hint">Digite o nome do acólito ou coroinha para consultar seus registros.</p>' : ""}`;
+      panel.before(tools);
+      tools.addEventListener("input", () => applyPresenceFilters(panel, kind));
+      tools.addEventListener("change", () => applyPresenceFilters(panel, kind));
+    }
+    applyPresenceFilters(panel, kind);
+  }
+
+  async function addAdministrativeHistory(panel) {
+    if (panel.dataset.slR7AdminLoaded === "true") return;
+    panel.dataset.slR7AdminLoaded = "true";
+    const team = await loadAdminRecords();
+    if (!panel.isConnected) return;
+    for (const member of team) {
+      for (const [field, label, kind] of [["advertencias","Advertência","advertencia"],["faltas","Falta em missa/atividade","falta"],["justificativas","Justificativa","justificada"]]) {
+        for (const record of Array.isArray(member[field]) ? member[field] : []) {
+          if (panel.querySelector(`[data-record-id="${CSS.escape(String(record.id))}"]`)) continue;
+          const article = document.createElement("article");
+          article.className = "sl-r7-admin-record rounded-2xl border border-[#e1d7d1] bg-white p-4 shadow-sm";
+          article.dataset.recordId = String(record.id);
+          article.dataset.kind = kind;
+          article.innerHTML = `<div><h2 class="font-semibold text-[#2b2224]"></h2><p class="text-xs text-[#756d6f]"></p><span class="sl-r7-record-chip"></span><p class="mt-3 text-sm text-[#4f4749]"></p></div>`;
+          article.querySelector("h2").textContent = member.nome || "Membro";
+          article.querySelector(".text-xs").textContent = `${member.funcao || "Membro"} · ${String(record.data || "").split("-").reverse().join("/")}`;
+          article.querySelector(".sl-r7-record-chip").textContent = label;
+          article.querySelector(".mt-3").textContent = record.descricao || "Sem descrição";
+          panel.appendChild(article);
+        }
+      }
+    }
+    ensurePresenceTools(panel, "historico");
+  }
+
+  function enhancePresenceCenter() {
+    if (!location.pathname.includes("/area-restrita/moderador/presencas")) return;
+    [...document.querySelectorAll("h1,h2")].forEach((heading) => { if (text(heading) === "Controle de Presenças") heading.textContent = "Central de Presenças e Registros"; });
+    const selected = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].find((tab) => /Equipe|Formações|Histórico/.test(text(tab)));
+    const panel = document.querySelector('section[role="tabpanel"]');
+    if (!selected || !panel) return;
+    const label = text(selected);
+    if (label.includes("Equipe")) ensurePresenceTools(panel, "equipe");
+    if (label.includes("Histórico")) { ensurePresenceTools(panel, "historico"); void addAdministrativeHistory(panel); }
+  }
+
+  function organizePublishedScale() {
+    document.querySelectorAll("main h3").forEach((heading) => {
+      if (!/Acólitos|Coroinhas|Equipe|Escalados/i.test(text(heading))) return;
+      const list = heading.parentElement?.querySelector(":scope > ul");
+      if (!list) return;
+      list.classList.add("sl-r7-scale-list");
+      list.querySelectorAll(":scope > li").forEach((item) => {
+        const name = item.querySelector("strong");
+        if (!name) return;
+        if (!name.dataset.slFullName) name.dataset.slFullName = text(name);
+        const parts = name.dataset.slFullName.split(/\s+/).filter(Boolean);
+        name.textContent = parts.length > 1 ? `${parts[0]} ${parts.at(-1)}` : parts[0] || "";
+        item.classList.add("sl-r7-scale-person");
+      });
+    });
+    void enrichPublishedScaleLiturgy();
+  }
+
+  let scaleLiturgyPromise = null;
+  function enrichPublishedScaleLiturgy() {
+    if (!location.pathname.toLowerCase().includes("escala")) return Promise.resolve();
+    if (!scaleLiturgyPromise) scaleLiturgyPromise = fetch("/api/escalas", { cache:"no-store", credentials:"same-origin" }).then((response) => response.ok ? response.json() : null).then((data) => Array.isArray(data?.escalas) ? data.escalas : []).catch(() => []);
+    return scaleLiturgyPromise.then(async (scales) => {
+      for (const scale of scales) {
+        if (document.querySelector(`[data-sl-liturgy-scale="${CSS.escape(String(scale.id))}"]`)) continue;
+        const [year,month,day] = String(scale.data || "").split("-").map(Number);
+        if (!year || !month || !day) continue;
+        const formatted = new Intl.DateTimeFormat("pt-BR", { weekday:"long",day:"2-digit",month:"long",year:"numeric",timeZone:"UTC" }).format(new Date(Date.UTC(year,month-1,day)));
+        const article = [...document.querySelectorAll("main article")].find((item) => text(item).toLocaleLowerCase("pt-BR").includes(formatted.toLocaleLowerCase("pt-BR")));
+        if (!article) continue;
+        const date = new Date(Date.UTC(year,month-1,day));
+        if (date.getUTCDay() === 6) date.setUTCDate(date.getUTCDate()+1);
+        const liturgyDate = date.toISOString().slice(0,10);
+        try {
+          const response = await fetch(`/api/liturgia?data=${liturgyDate}`, { cache:"force-cache", headers:{"X-Santa-Luzia-Windows-Beta":"1"} });
+          const liturgy = await response.json().catch(() => null);
+          if (!response.ok || !liturgy) continue;
+          const meta = document.createElement("div");
+          meta.className = "sl-r7-liturgy-meta";
+          meta.dataset.slLiturgyScale = String(scale.id);
+          meta.style.setProperty("--sl-liturgical-color", String(liturgy.cor || "#9a731d"));
+          meta.innerHTML = "<strong></strong><span></span>";
+          meta.querySelector("strong").textContent = liturgy.liturgia || liturgy.tempoLiturgicoAtual || "Celebração litúrgica";
+          meta.querySelector("span").textContent = `${liturgy.tempoLiturgicoAtual || "Tempo litúrgico"} · Ciclo ${liturgy.cicloDominical || "—"} · Cor ${liturgy.cor || "—"}${date.getUTCDay() === 0 && String(scale.data) !== liturgyDate ? " · Liturgia do domingo" : ""}`;
+          const heading = article.querySelector(":scope > div");
+          heading?.after(meta);
+        } catch {}
+      }
+    });
+  }
+
+  let myRecordsPromise = null;
+  function renderMyAdministrativeRecords() {
+    if (!location.pathname.includes("/area-restrita/membro") || document.querySelector(".sl-r7-my-records")) return;
+    if (!myRecordsPromise) myRecordsPromise = fetch("/api/auth/me", { cache:"no-store", credentials:"same-origin" }).then((response) => response.ok ? response.json() : null)
+      .then(async (auth) => {
+        const user = auth?.sessao?.usuario;
+        if (!user?.id) return null;
+        const response = await fetch(`/api/membros/${encodeURIComponent(user.id)}`, { cache:"no-store", credentials:"same-origin", headers:{"X-Santa-Luzia-Windows-Beta":"1"} });
+        const data = await response.json().catch(() => null);
+        return response.ok ? data?.membro : null;
+      }).catch(() => null);
+    void myRecordsPromise.then((member) => {
+      if (!member || document.querySelector(".sl-r7-my-records")) return;
+      const main = document.querySelector("main > div") || document.querySelector("main");
+      if (!main) return;
+      const warnings = Array.isArray(member.advertencias) ? member.advertencias : [];
+      const absences = Array.isArray(member.faltas) ? member.faltas : [];
+      const reasons = Array.isArray(member.justificativas) ? member.justificativas : [];
+      const card = document.createElement("section");
+      card.className = "sl-r7-my-records";
+      const items = [...warnings.map((item) => ({...item,label:"Advertência"})),...absences.map((item) => ({...item,label:"Falta"})),...reasons.map((item) => ({...item,label:"Justificativa"}))].sort((a,b) => Number(b.criadoEm||0)-Number(a.criadoEm||0));
+      card.innerHTML = `<h2>Meu acompanhamento</h2><p style="margin:3px 0 0;color:#756d6f;font-size:11px">Presenças, faltas justificadas e advertências visíveis somente para você.</p><div class="sl-r7-my-records-summary"><span><b>${warnings.length}</b>Advertências</span><span><b>${absences.length}</b>Faltas</span><span><b>${reasons.length}</b>Justificativas</span></div><details><summary>Ver histórico pessoal</summary><ul></ul></details>`;
+      const list = card.querySelector("ul");
+      for (const item of items) { const li=document.createElement("li"); li.textContent=`${item.label} · ${String(item.data||"").split("-").reverse().join("/")} — ${item.descricao||"Sem descrição"}`; list.appendChild(li); }
+      if (!items.length) { const li=document.createElement("li"); li.textContent="Nenhum registro administrativo no momento."; list.appendChild(li); }
+      main.prepend(card);
+    });
+  }
+
+  function organizeFormationManagement() {
+    const title = [...document.querySelectorAll("h3")].find((heading) => text(heading) === "Formações publicadas");
+    const list = title?.parentElement?.querySelector(":scope > div.space-y-3");
+    if (!title || !list) return;
+    let tools = title.parentElement.querySelector(":scope > .sl-r7-formation-archive-tools");
+    if (!tools) {
+      tools = document.createElement("div");
+      tools.className = "sl-r7-formation-archive-tools";
+      tools.dataset.archive = "false";
+      tools.innerHTML = '<input type="search" placeholder="Pesquisar formação por título, data ou ano" aria-label="Pesquisar formações"><button type="button">Consultar concluídas</button>';
+      title.after(tools);
+      tools.querySelector("button").addEventListener("click", () => { tools.dataset.archive = tools.dataset.archive === "true" ? "false" : "true"; tools.querySelector("button").textContent = tools.dataset.archive === "true" ? "Mostrar atuais" : "Consultar concluídas"; organizeFormationManagement(); });
+      tools.querySelector("input").addEventListener("input", organizeFormationManagement);
+    }
+    const query = tools.querySelector("input").value.trim().toLocaleLowerCase("pt-BR");
+    const archive = tools.dataset.archive === "true";
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone:"America/Cuiaba" }).format(new Date());
+    list.querySelectorAll(":scope > article").forEach((card) => {
+      const match = text(card).match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/);
+      if (!match) return;
+      const iso = `${match[3]}-${match[2]}-${match[1]}`;
+      const past = iso < today;
+      card.dataset.slFormationPast = String(past);
+      const badge = [...card.querySelectorAll("span")].find((element) => /^(Agendada|Cancelada)$/.test(text(element)));
+      if (past && badge && text(badge) !== "Cancelada") { badge.textContent = "Concluída"; badge.className = "rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700"; }
+      if (past) [...card.querySelectorAll("button")].filter((button) => /Cancelar|Reativar/.test(text(button))).forEach((button) => { button.disabled = true; button.style.display = "none"; });
+      const matches = !query || text(card).toLocaleLowerCase("pt-BR").includes(query);
+      card.style.display = matches && (archive ? past : !past) ? "" : "none";
+    });
+  }
+
+  function enhanceDelayClocks() {
+    const targets = [...document.querySelectorAll('a[href*="/atrasos"],button,main h1,main h2,main h3,main div,main span')].filter((element) => {
+      const content = text(element);
+      return content.length < 100 && /Atrasos|Pontualidade/.test(content) && Boolean(element.querySelector(":scope > svg"));
+    });
+    for (const target of targets) {
+      const host = target.matches("a") ? target : target.parentElement;
+      if (!host || host.querySelector(":scope > .sl-r7-delay-clock")) continue;
+      const source = host.querySelector(":scope > svg");
+      source?.classList.add("sl-r7-delay-source");
+      const clock = document.createElement("span");
+      clock.className = "sl-r6-clock sl-r7-delay-clock";
+      clock.setAttribute("role","img");
+      clock.innerHTML = '<em class="n12">12</em><em class="n3">3</em><em class="n6">6</em><em class="n9">9</em><i class="sl-r6-clock-hand sl-r6-clock-hour"></i><i class="sl-r6-clock-hand sl-r6-clock-minute"></i><i class="sl-r6-clock-hand sl-r6-clock-second"></i><i class="sl-r6-clock-center"></i>';
+      source?.after(clock) || host.prepend(clock);
+      updatePresenceClock(clock.parentElement || document);
+    }
+  }
+
+  const catholicEmojis = ["✝️","⛪","🙏","🕊️","🕯️","📖","🌹","❤️‍🔥","👼","🛐"];
+  function enhanceProfileAndSoundControls() {
+    const bio = document.querySelector("#perfil-bio");
+    if (bio) {
+      const label = [...document.querySelectorAll("span")].find((element) => text(element) === "Emojis católicos");
+      const buttons = [...(label?.parentElement?.querySelectorAll("button") || [])];
+      buttons.slice(0,catholicEmojis.length).forEach((button,index) => {
+        if (button.dataset.slCatholicEmoji === catholicEmojis[index]) return;
+        button.dataset.slCatholicEmoji = catholicEmojis[index];
+        button.textContent = catholicEmojis[index];
+        button.title = `Adicionar ${catholicEmojis[index]}`;
+        button.addEventListener("click", (event) => {
+          event.preventDefault(); event.stopImmediatePropagation();
+          const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,"value")?.set;
+          const next = `${bio.value}${bio.value && !/\s$/.test(bio.value) ? " " : ""}${catholicEmojis[index]}`.slice(0,280);
+          setter?.call(bio,next); bio.dispatchEvent(new Event("input",{bubbles:true}));
+        }, true);
+      });
+    }
+    const soundHeading = [...document.querySelectorAll("h3")].find((heading) => text(heading) === "Som das notificações");
+    soundHeading?.closest(".rounded-2xl")?.classList.add("sl-r7-compact-sounds");
+
+    const profilesTitle = [...document.querySelectorAll("h2")].find((heading) => text(heading) === "Perfis da equipe");
+    const profileSection = profilesTitle?.closest("section");
+    const search = profileSection?.querySelector('input[placeholder="Buscar"]');
+    const grid = profileSection ? [...profileSection.querySelectorAll("div")].find((element) => element.querySelectorAll(":scope > button").length > 4) : null;
+    if (search && grid) {
+      const apply = () => { const active=Boolean(search.value.trim()); [...grid.querySelectorAll(":scope > button")].forEach((card,index) => { card.style.display = active || index < 4 ? "" : "none"; }); };
+      if (search.dataset.slFourProfiles !== "true") { search.dataset.slFourProfiles="true"; search.addEventListener("input",() => setTimeout(apply,0)); }
+      apply();
+    }
+  }
+
   function coverRouteTransition(anchor) {
     const href = anchor?.getAttribute("href") || "";
     if (!href || href.startsWith("#")) return;
@@ -142,7 +462,7 @@
     const cover = document.createElement("div");
     cover.className = "sl-runtime-route-cover";
     document.body.appendChild(cover);
-    cover.animate([{ opacity:0 },{ opacity:1 }], { duration:70, fill:"forwards", easing:"ease-out" });
+    cover.style.opacity = "1";
     const origin = location.href;
     const startedAt = Date.now();
     const timer = setInterval(() => {
@@ -159,8 +479,6 @@
   }
 
   document.addEventListener("click", (event) => {
-    const lockedPresence = event.target instanceof Element ? event.target.closest('[data-sl-r4-presence-locked="true"]') : null;
-    if (lockedPresence) { event.preventDefault(); event.stopImmediatePropagation(); return; }
     const anchor = event.target instanceof Element ? event.target.closest(".mobile-app-bottom-nav a[href]") : null;
     if (anchor) coverRouteTransition(anchor);
   }, true);
@@ -169,11 +487,17 @@
   const observer = new MutationObserver(() => {
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); });
+    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); });
   });
   observer.observe(document.documentElement, { childList:true, subtree:true });
   fixPodiumTrophies();
   applyFormationPresenceLock();
+  enhancePresenceCenter();
+  organizePublishedScale();
+  renderMyAdministrativeRecords();
+  organizeFormationManagement();
+  enhanceDelayClocks();
+  enhanceProfileAndSoundControls();
   setInterval(() => { applyFormationPresenceLock(); updatePresenceClock(); }, 1_000);
   window.dispatchEvent(new CustomEvent("santa-luzia:windows-beta-runtime", { detail: { revision } }));
 })();
