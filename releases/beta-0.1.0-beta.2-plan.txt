@@ -1,0 +1,7 @@
+Santa Luzia Windows Beta 0.1.0-beta.2
+
+Validação nativa da primeira melhoria testada somente no Windows.
+- Interface base igual ao Android code 18.
+- Janela no breakpoint visual mobile.
+- Patch nativo do menu do moderador conforme vídeo.
+- Sem alteração do Android estável.
