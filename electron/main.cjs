@@ -1,5 +1,6 @@
 const { app, BrowserWindow, dialog, shell } = require("electron")
 const { autoUpdater } = require("electron-updater")
+const fs = require("node:fs")
 const path = require("node:path")
 const beta = require("../config/windows-beta.json")
 
@@ -11,6 +12,18 @@ let updatePromptOpen = false
 
 app.setName(beta.appName)
 app.setAppUserModelId("br.com.comunidadesantaluzia.beta")
+
+function aplicarCssNativo(win) {
+  try {
+    const arquivo = path.join(__dirname, "motion-fixes.css")
+    const css = fs.readFileSync(arquivo, "utf8")
+    void win.webContents.insertCSS(css).catch((error) => {
+      console.error("Falha ao aplicar CSS Motion da Beta Windows:", error?.message || error)
+    })
+  } catch (error) {
+    console.error("CSS Motion da Beta Windows ausente:", error?.message || error)
+  }
+}
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -38,6 +51,8 @@ function createWindow() {
 
   const currentUserAgent = win.webContents.getUserAgent()
   win.webContents.setUserAgent(`${currentUserAgent} SantaLuziaWindowsBeta/${beta.versionName}`)
+
+  win.webContents.on("did-finish-load", () => aplicarCssNativo(win))
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     try {
