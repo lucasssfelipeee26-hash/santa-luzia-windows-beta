@@ -89,7 +89,7 @@ jobs:
           )) {
             if (-not $preload.Contains($marker)) { throw "Correção visual do vídeo incompleta: marcador $marker ausente." }
           }
-          foreach ($marker in @("PRESENCE_KEY", "sl-task-fullscreen", "Conferir resultado", "NAV_TIMEOUT", "presença diária")) {
+          foreach ($marker in @("PRESENCE_KEY", "sl-task-fullscreen", "Conferir resultado", "NAV_TIMEOUT", "Presença diária")) {
             if (-not $behavior.Contains($marker)) { throw "Correção comportamental do vídeo incompleta: marcador $marker ausente." }
           }
           foreach ($marker in @("slHeaderMenuEnter", "slTabPanelEnter", ".app-nav-tile")) {
