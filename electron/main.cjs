@@ -9,6 +9,8 @@ const ALLOWED_ORIGIN = new URL(APP_URL).origin
 const IS_PORTABLE = Boolean(process.env.PORTABLE_EXECUTABLE_FILE || process.env.PORTABLE_EXECUTABLE_DIR)
 let mainWindow = null
 let updatePromptOpen = false
+let updateCheckRunning = false
+let updateInterval = null
 
 app.setName(beta.appName)
 app.setAppUserModelId("br.com.comunidadesantaluzia.beta")
@@ -98,12 +100,29 @@ function createWindow() {
   return win
 }
 
+async function checkForBetaUpdate() {
+  if (!app.isPackaged || IS_PORTABLE || updateCheckRunning) return
+  updateCheckRunning = true
+  try {
+    await autoUpdater.checkForUpdates()
+  } catch (error) {
+    console.error("Falha ao consultar o canal Beta no GitHub:", error?.message || error)
+  } finally {
+    updateCheckRunning = false
+  }
+}
+
 function configureUpdater() {
   if (!app.isPackaged || IS_PORTABLE) return
 
   autoUpdater.autoDownload = false
   autoUpdater.autoInstallOnAppQuit = true
   autoUpdater.allowPrerelease = true
+  autoUpdater.channel = "beta"
+
+  autoUpdater.on("checking-for-update", () => {
+    console.log(`Consultando atualizações do canal beta. Versão instalada: ${app.getVersion()}`)
+  })
 
   autoUpdater.on("update-available", async (info) => {
     if (updatePromptOpen || !mainWindow || mainWindow.isDestroyed()) return
@@ -113,7 +132,7 @@ function configureUpdater() {
         type: "info",
         title: "Nova Beta disponível",
         message: `Santa Luzia Beta ${info.version} está disponível.`,
-        detail: "Esta atualização é nativa e vem do repositório oficial Santa Luzia Windows Beta no GitHub.",
+        detail: "Esta atualização é nativa e vem do canal Beta oficial no GitHub.",
         buttons: ["Atualizar agora", "Depois"],
         defaultId: 0,
         cancelId: 1,
@@ -123,6 +142,10 @@ function configureUpdater() {
     } finally {
       updatePromptOpen = false
     }
+  })
+
+  autoUpdater.on("update-not-available", (info) => {
+    console.log(`Canal beta sem versão mais nova. Instalada: ${app.getVersion()}; consultada: ${info?.version || "desconhecida"}`)
   })
 
   autoUpdater.on("download-progress", (progress) => {
@@ -147,14 +170,15 @@ function configureUpdater() {
 
   autoUpdater.on("error", (error) => {
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.setProgressBar(-1)
-    console.error("Falha ao verificar atualização da Beta Windows:", error?.message || error)
+    console.error("Falha no auto-update da Beta Windows:", error?.message || error)
   })
 
-  setTimeout(() => {
-    void autoUpdater.checkForUpdates().catch((error) => {
-      console.error("Falha ao consultar GitHub Releases da Beta Windows:", error?.message || error)
-    })
-  }, 3500)
+  setTimeout(() => void checkForBetaUpdate(), 2500)
+  updateInterval = setInterval(() => void checkForBetaUpdate(), 15 * 60 * 1000)
+
+  app.on("browser-window-focus", () => {
+    void checkForBetaUpdate()
+  })
 }
 
 app.whenReady().then(() => {
@@ -163,6 +187,10 @@ app.whenReady().then(() => {
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+})
+
+app.on("before-quit", () => {
+  if (updateInterval) clearInterval(updateInterval)
 })
 
 app.on("window-all-closed", () => {
