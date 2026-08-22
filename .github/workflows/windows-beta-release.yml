@@ -69,8 +69,23 @@ jobs:
           if (-not $preload.Contains("PATCH_VERSION = `"$($beta.versionName)`"")) {
             throw "A versão da camada nativa não está alinhada à Beta $($beta.versionName)."
           }
-          foreach ($marker in @("sl-trophy-3d", "sl-avatar-spin", "sl-ranking-banner", "sl-logo-entry", "sl-page-enter")) {
-            if (-not $preload.Contains($marker)) { throw "Motion nativa incompleta: marcador $marker ausente." }
+          $markers = @(
+            "sl-trophy-3d",
+            "sl-avatar-spin",
+            "sl-ranking-banner",
+            "sl-logo-entry",
+            "sl-page-enter",
+            "sl-video-card-",
+            "Comitê de Presença",
+            "Central de Formação",
+            "sl-bottom-active",
+            "HIDDEN_MODERATOR_SHORTCUTS",
+            "Entrou no Top 3",
+            "passou você",
+            "windowsMotionVersion"
+          )
+          foreach ($marker in $markers) {
+            if (-not $preload.Contains($marker)) { throw "Correção do vídeo incompleta: marcador $marker ausente." }
           }
 
       - name: Instalar dependências
@@ -141,11 +156,12 @@ jobs:
           $notes = @"
           Santa Luzia Beta para Windows — $env:WINDOWS_BETA_VERSION
 
-          Canal independente do Android para validar mudanças antes da publicação no celular.
+          Correção completa de testes do vídeo no canal Windows Beta.
 
-          Esta Beta inclui a camada Motion nativa de testes: transições, pódio animado,
-          avatares com giro único, halos ouro/prata/bronze, troféu 3D e avisos de
-          mudanças no ranking. O Android estável continua sem estas alterações.
+          Esta Beta mantém a base visual do Android code 18 e empacota no executável
+          as melhorias de transição, Santa Luzia, cards, menus, presença, formação,
+          navegação inferior e ranking: pódio proporcional, avatares com giro único,
+          halos ouro/prata/bronze, troféu 3D, pontos animados e avisos de ultrapassagem.
 
           Arquivos:
           - Setup: recomendado; recebe as próximas Betas automaticamente pelo GitHub.
