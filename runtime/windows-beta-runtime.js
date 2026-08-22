@@ -65,6 +65,20 @@
     .sl-r7-compact-sounds p { font-size:9px !important; line-height:1.25 !important; }
     .sl-r7-compact-sounds > div:nth-of-type(2) { margin-top:6px !important; gap:4px !important; }
     .sl-r7-compact-sounds button { min-height:28px !important; padding-top:3px !important; padding-bottom:3px !important; font-size:9px !important; }
+    .sl-r7-animated-nav-source { display:none !important; }
+    .sl-r7-books-icon,.sl-r7-liturgy-icon,.sl-r7-panel-icon { position:relative; display:inline-block; width:28px; height:28px; flex:0 0 28px; }
+    .sl-r7-books-icon i { position:absolute; left:3px; width:22px; height:6px; border-radius:2px; box-shadow:0 2px 3px rgba(65,32,29,.14); transform-origin:50% 50%; animation:slR7BookShift 3s ease-in-out infinite; }
+    .sl-r7-books-icon i:nth-child(1){bottom:3px;background:#7b1326}.sl-r7-books-icon i:nth-child(2){bottom:10px;background:#d4af37;animation-delay:-1s}.sl-r7-books-icon i:nth-child(3){bottom:17px;background:#315e4d;animation-delay:-2s}
+    @keyframes slR7BookShift{0%,100%{transform:translateX(0) rotate(0)}50%{transform:translateX(2px) rotate(-2deg)}}
+    .sl-r7-liturgy-icon { border:2px solid #7b1326; border-radius:4px 4px 8px 8px; background:linear-gradient(90deg,#fff8e7 0 48%,#d4af37 49% 51%,#fff8e7 52%); transform:perspective(80px) rotateX(8deg); }
+    .sl-r7-liturgy-icon::after { content:""; position:absolute; inset:3px 3px 3px 50%; border-radius:2px 5px 5px 2px; background:#fffdf7; border-left:1px solid #d4af37; transform-origin:left center; animation:slR7PageFlip 3.2s ease-in-out infinite; }
+    @keyframes slR7PageFlip{0%,30%,100%{transform:rotateY(0)}55%,72%{transform:rotateY(-155deg)}}
+    .sl-r7-panel-icon::before { content:""; position:absolute; left:9px; top:2px; width:10px; height:10px; border-radius:50%; background:#d9a17c; box-shadow:inset -2px -1px 0 rgba(103,47,35,.15); }
+    .sl-r7-panel-icon::after { content:""; position:absolute; left:8px; top:12px; width:12px; height:13px; border-radius:7px 7px 5px 5px; background:#7b1326; }
+    .sl-r7-panel-icon i { position:absolute; top:12px; width:3px; height:13px; border-radius:3px; background:#d9a17c; transform-origin:50% 90%; animation:slR7PrayArms 2.4s ease-in-out infinite; z-index:2; }
+    .sl-r7-panel-icon i:first-child{left:7px;transform:rotate(40deg)}.sl-r7-panel-icon i:last-child{right:7px;transform:rotate(-40deg);animation-delay:-1.2s}
+    @keyframes slR7PrayArms{0%,100%{translate:0 0}50%{translate:0 -3px}}
+    @media(prefers-reduced-motion:reduce){.sl-r7-books-icon i,.sl-r7-liturgy-icon::after,.sl-r7-panel-icon i{animation:none!important}}
     @media(max-width:520px){.sl-r7-presence-tools{grid-template-columns:1fr 1fr}.sl-r7-presence-tools input{grid-column:1/-1}}
     [data-sl-r4-presence-locked="true"] { opacity:.58; pointer-events:none !important; user-select:none; }
     .sl-r5-card-trophy { --sl-cup-light:#fff0a4; --sl-cup-main:#d4a526; --sl-cup-dark:#76500b; position:absolute; top:8px; right:8px; z-index:18; width:43px; height:43px; pointer-events:none; filter:drop-shadow(0 8px 8px color-mix(in srgb,var(--sl-cup-dark) 42%,transparent)); animation:slR5CupFloat 3.2s ease-in-out infinite; transform-style:preserve-3d; }
@@ -452,6 +466,24 @@
     }
   }
 
+  function enhanceAnimatedNavigationIcons() {
+    const definitions = [
+      { pattern:/Biblioteca/i, className:"sl-r7-books-icon", markup:"<i></i><i></i><i></i>" },
+      { pattern:/Liturgia/i, className:"sl-r7-liturgy-icon", markup:"" },
+      { pattern:/Painel/i, className:"sl-r7-panel-icon", markup:"<i></i><i></i>" },
+    ];
+    for (const element of document.querySelectorAll("a,button,h1,h2,h3")) {
+      const content = text(element);
+      if (content.length > 80) continue;
+      const definition = definitions.find((item) => item.pattern.test(content));
+      if (!definition || element.querySelector(`:scope > .${definition.className}`)) continue;
+      const source = element.querySelector(":scope > svg");
+      if (!source) continue;
+      source.classList.add("sl-r7-animated-nav-source");
+      const icon = document.createElement("span"); icon.className=definition.className; icon.setAttribute("aria-hidden","true"); icon.innerHTML=definition.markup; source.after(icon);
+    }
+  }
+
   function coverRouteTransition(anchor) {
     const href = anchor?.getAttribute("href") || "";
     if (!href || href.startsWith("#")) return;
@@ -487,7 +519,7 @@
   const observer = new MutationObserver(() => {
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); });
+    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); enhanceAnimatedNavigationIcons(); });
   });
   observer.observe(document.documentElement, { childList:true, subtree:true });
   fixPodiumTrophies();
@@ -498,6 +530,7 @@
   organizeFormationManagement();
   enhanceDelayClocks();
   enhanceProfileAndSoundControls();
+  enhanceAnimatedNavigationIcons();
   setInterval(() => { applyFormationPresenceLock(); updatePresenceClock(); }, 1_000);
   window.dispatchEvent(new CustomEvent("santa-luzia:windows-beta-runtime", { detail: { revision } }));
 })();
