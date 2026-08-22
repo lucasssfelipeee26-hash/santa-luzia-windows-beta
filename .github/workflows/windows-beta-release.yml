@@ -58,24 +58,42 @@ jobs:
           }
           exit 0
 
-      - name: Validar camada nativa Windows
+      - name: Validar pacote nativo consolidado Windows
         working-directory: app
         shell: pwsh
         run: |
           node --check electron/main.cjs
-          node --check electron/preload.cjs
+          node --check electron/preload-v5.cjs
           node --check electron/behavior-fixes.js
-          $beta = Get-Content config/windows-beta.json | ConvertFrom-Json
-          $preload = Get-Content electron/preload.cjs -Raw
+          $main = Get-Content electron/main.cjs -Raw
+          $preload = Get-Content electron/preload-v5.cjs -Raw
           $behavior = Get-Content electron/behavior-fixes.js -Raw
-          if (-not $behavior.Contains("PATCH = `"$($beta.versionName)`"")) {
-            throw "A versão das correções comportamentais não está alinhada à Beta $($beta.versionName)."
+          $motionCss = Get-Content electron/motion-fixes.css -Raw
+          foreach ($marker in @("preload-v5.cjs", "behavior-fixes.js", "motion-fixes.css")) {
+            if (-not $main.Contains($marker)) { throw "Integração nativa incompleta: $marker não está ligada pelo Electron." }
           }
-          foreach ($marker in @("sl-trophy-3d", "sl-avatar-spin", "sl-ranking-banner", "sl-logo-entry", "sl-page-enter")) {
-            if (-not $preload.Contains($marker)) { throw "Motion nativa incompleta: marcador $marker ausente." }
+          foreach ($marker in @(
+            "sl-trophy-3d",
+            "sl-avatar-spin",
+            "sl-ranking-banner",
+            "sl-logo-entry",
+            "sl-page-enter",
+            "sl-video-card-",
+            "Comitê de Presença",
+            "Central de Formação",
+            "sl-bottom-active",
+            "HIDDEN_MODERATOR_SHORTCUTS",
+            "Entrou no Top 3",
+            "passou você",
+            "windowsMotionVersion"
+          )) {
+            if (-not $preload.Contains($marker)) { throw "Correção visual do vídeo incompleta: marcador $marker ausente." }
           }
-          foreach ($marker in @("PRESENCE_KEY", "sl-task-fullscreen", "Conferir resultado", "NAV_TIMEOUT")) {
-            if (-not $behavior.Contains($marker)) { throw "Correção comportamental incompleta: marcador $marker ausente." }
+          foreach ($marker in @("PRESENCE_KEY", "sl-task-fullscreen", "Conferir resultado", "NAV_TIMEOUT", "Presença diária")) {
+            if (-not $behavior.Contains($marker)) { throw "Correção comportamental do vídeo incompleta: marcador $marker ausente." }
+          }
+          foreach ($marker in @("slHeaderMenuEnter", "slTabPanelEnter", ".app-nav-tile")) {
+            if (-not $motionCss.Contains($marker)) { throw "Correção CSS complementar incompleta: marcador $marker ausente." }
           }
 
       - name: Instalar dependências
@@ -146,17 +164,16 @@ jobs:
           $notes = @"
           Santa Luzia Beta para Windows — $env:WINDOWS_BETA_VERSION
 
-          Revisão completa do vídeo de validação da Beta Windows.
+          Consolidação definitiva das correções do vídeo de validação.
 
-          Motion mantida: transições, pódio Top 3, avatares com giro único,
-          halos ouro/prata/bronze, troféu 3D, pontuação animada e avisos de ranking.
+          Esta versão preserva as correções comportamentais já preparadas e soma
+          a nova camada visual nativa: transições, Santa Luzia, cards, menus, abas,
+          Presença, Formação, navegação inferior e ranking com pódio proporcional,
+          giro único dos avatares, halos ouro/prata/bronze, troféu 3D, pontos animados
+          e avisos de novo líder, Top 3 e ultrapassagem.
 
-          Correções comportamentais desta revisão:
-          - navegação interna e botão Voltar com fallback contra travamento;
-          - presença diária separada de missas/formações, com sequência e reset;
-          - tarefas abertas em tela cheia quando usam Instruções/Enviar resposta;
-          - feedback visual no fluxo Conferir resultado;
-          - animação de transição reaplicada nas mudanças de rota.
+          Também permanecem: presença diária com sequência, tarefas em tela cheia,
+          feedback de Conferir resultado e fallback de navegação/Voltar.
 
           O Android estável 1.0.6/code18 permanece sem estas alterações.
           "@
