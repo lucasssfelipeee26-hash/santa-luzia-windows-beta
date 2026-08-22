@@ -1,0 +1,40 @@
+@keyframes slHeaderMenuEnter {
+  0% { opacity: 0; transform: translate3d(0,-9px,0) scale(.985); }
+  100% { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+}
+
+/* O menu superior não usa o translate(-50%,-50%) dos modais centrais. */
+.app-mobile-menu-layer .app-nav-panel.sl-dialog-enter {
+  transform: none !important;
+  animation: slHeaderMenuEnter 260ms cubic-bezier(.22,.8,.22,1) both !important;
+  transform-origin: top center;
+}
+
+/* As abas animam toda vez que voltam ao estado ativo, não apenas na primeira visita. */
+[role="tabpanel"][data-state="active"] {
+  animation: slTabPanelEnter 240ms cubic-bezier(.22,.8,.22,1) both;
+}
+
+/* Pequena resposta visual nos atalhos circulados no vídeo, mantendo a identidade do Android. */
+main a[class*="rounded"],
+main button[class*="rounded"] {
+  transition-property: transform, box-shadow, background-color, border-color, color !important;
+  transition-duration: 180ms !important;
+  transition-timing-function: cubic-bezier(.22,.8,.22,1) !important;
+}
+
+.app-nav-tile {
+  transform-origin: center;
+}
+
+.app-nav-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(75,34,42,.10);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-mobile-menu-layer .app-nav-panel.sl-dialog-enter,
+  [role="tabpanel"][data-state="active"] {
+    animation: none !important;
+  }
+}
