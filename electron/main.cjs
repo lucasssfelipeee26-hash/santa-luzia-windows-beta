@@ -25,6 +25,18 @@ function aplicarCssNativo(win) {
   }
 }
 
+function aplicarCorrecoesComportamentais(win) {
+  try {
+    const arquivo = path.join(__dirname, "behavior-fixes.js")
+    const script = fs.readFileSync(arquivo, "utf8")
+    void win.webContents.executeJavaScript(script, true).catch((error) => {
+      console.error("Falha ao aplicar correções comportamentais da Beta Windows:", error?.message || error)
+    })
+  } catch (error) {
+    console.error("Correções comportamentais da Beta Windows ausentes:", error?.message || error)
+  }
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     title: `${beta.appName} ${beta.versionName}`,
@@ -52,7 +64,10 @@ function createWindow() {
   const currentUserAgent = win.webContents.getUserAgent()
   win.webContents.setUserAgent(`${currentUserAgent} SantaLuziaWindowsBeta/${beta.versionName}`)
 
-  win.webContents.on("did-finish-load", () => aplicarCssNativo(win))
+  win.webContents.on("did-finish-load", () => {
+    aplicarCssNativo(win)
+    aplicarCorrecoesComportamentais(win)
+  })
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     try {
