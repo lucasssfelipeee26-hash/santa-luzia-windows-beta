@@ -1,7 +1,7 @@
 "use strict";
 
 (() => {
-  const revision = "5";
+  const revision = "6";
   if (document.documentElement.dataset.windowsBetaRuntime === revision) return;
   document.documentElement.dataset.windowsBetaRuntime = revision;
 
@@ -9,9 +9,21 @@
   style.id = "sl-windows-runtime-r2";
   style.textContent = `
     .sl-b7-trophy, .sl-trophy-3d, .sl-r3-card-trophy { display:none !important; }
+    .sl-r6-podium-header > svg, .sl-r6-podium-header > .sl-b7-trophy { display:none !important; }
     .sl-b7-route-shield { display:none !important; }
     .sl-runtime-route-cover { position:fixed; inset:0; z-index:244; pointer-events:none; background:#fffaf0; opacity:0; }
-    .sl-r4-presence-locked { margin-top:16px; display:flex; align-items:flex-start; gap:8px; border:1px solid #e2c86f; border-radius:16px; background:#fff8e6; padding:12px; color:#6f541a; font-size:14px; line-height:1.45; }
+    .sl-r4-presence-locked { margin-top:16px; display:flex; align-items:center; gap:12px; border:1px solid #e2c86f; border-radius:18px; background:linear-gradient(145deg,#fffaf0,#fff3cf); padding:12px 14px; color:#6f541a; font-size:14px; line-height:1.45; box-shadow:0 8px 22px rgba(125,91,21,.08); }
+    .sl-r6-clock { position:relative; width:42px; height:42px; flex:0 0 42px; border:3px solid #8f1934; border-radius:50%; background:radial-gradient(circle at 50% 50%,#fff 0 55%,#fff6dc 56% 100%); box-shadow:inset 0 0 0 2px rgba(212,175,55,.34),0 5px 12px rgba(92,45,25,.15); }
+    .sl-r6-clock::before { content:""; position:absolute; inset:3px; border-radius:50%; background:repeating-conic-gradient(from -1deg,#8f1934 0 2deg,transparent 2deg 30deg); mask:radial-gradient(circle,transparent 0 72%,#000 73%); opacity:.62; }
+    .sl-r6-clock-hand { position:absolute; left:50%; bottom:50%; width:2px; border-radius:999px; background:#6f1d30; transform-origin:50% 100%; will-change:transform; }
+    .sl-r6-clock-hour { height:10px; width:3px; }
+    .sl-r6-clock-minute { height:14px; }
+    .sl-r6-clock-second { height:15px; width:1px; background:#d49b20; transition:transform 160ms cubic-bezier(.2,.8,.2,1); }
+    .sl-r6-clock-center { position:absolute; left:50%; top:50%; width:6px; height:6px; border-radius:50%; background:#8f1934; transform:translate(-50%,-50%); box-shadow:0 0 0 2px #fff3c4; }
+    .sl-r6-lock-copy strong { display:block; color:#6f1d30; font-size:13px; }
+    .sl-r6-lock-copy span { display:block; margin-top:2px; font-size:12px; }
+    .sl-b9-private-presence { animation:slR6DailyLoginEnter 440ms cubic-bezier(.2,.78,.2,1) both !important; }
+    @keyframes slR6DailyLoginEnter { 0%{opacity:0;transform:translate3d(0,8px,0) scale(.985)} 72%{opacity:1;transform:translate3d(0,-1px,0) scale(1.002)} 100%{opacity:1;transform:none} }
     [data-sl-r4-presence-locked="true"] { opacity:.58; pointer-events:none !important; user-select:none; }
     .sl-r5-card-trophy { --sl-cup-light:#fff0a4; --sl-cup-main:#d4a526; --sl-cup-dark:#76500b; position:absolute; top:8px; right:8px; z-index:18; width:43px; height:43px; pointer-events:none; filter:drop-shadow(0 8px 8px color-mix(in srgb,var(--sl-cup-dark) 42%,transparent)); animation:slR5CupFloat 3.2s ease-in-out infinite; transform-style:preserve-3d; }
     .sl-r5-card-trophy svg { width:100%; height:100%; overflow:visible; }
@@ -35,7 +47,8 @@
     const title = [...document.querySelectorAll("main h1,main h2,main h3")].find((element) => text(element) === "Pódio da equipe");
     const section = title?.closest("section");
     if (!section) return;
-    section.querySelectorAll(".sl-trophy-3d,.sl-b7-trophy").forEach((element) => element.remove());
+    const header = title.parentElement;
+    header?.classList.add("sl-r6-podium-header");
     const rankOf = (card) => {
       const explicit = Number(card?.dataset?.slRank || card?.dataset?.rank || 0);
       if (explicit >= 1 && explicit <= 3) return explicit;
@@ -61,6 +74,22 @@
 
   function nowForPresence() {
     return Date.now();
+  }
+
+  function updatePresenceClock(root = document) {
+    const now = new Date(nowForPresence());
+    const seconds = now.getSeconds() + now.getMilliseconds() / 1000;
+    const minutes = now.getMinutes() + seconds / 60;
+    const hours = (now.getHours() % 12) + minutes / 60;
+    root.querySelectorAll(".sl-r6-clock").forEach((clock) => {
+      const hour = clock.querySelector(".sl-r6-clock-hour");
+      const minute = clock.querySelector(".sl-r6-clock-minute");
+      const second = clock.querySelector(".sl-r6-clock-second");
+      if (hour) hour.style.transform = `translateX(-50%) rotate(${hours * 30}deg)`;
+      if (minute) minute.style.transform = `translateX(-50%) rotate(${minutes * 6}deg)`;
+      if (second) second.style.transform = `translateX(-50%) rotate(${seconds * 6}deg)`;
+      clock.setAttribute("aria-label", `Horário atual: ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`);
+    });
   }
 
   function scheduledTimeFromArticle(article) {
@@ -95,9 +124,12 @@
       notice = document.createElement("div");
       notice.className = "sl-r4-presence-locked";
       notice.setAttribute("role", "status");
+      notice.innerHTML = `<span class="sl-r6-clock" role="img"><i class="sl-r6-clock-hand sl-r6-clock-hour"></i><i class="sl-r6-clock-hand sl-r6-clock-minute"></i><i class="sl-r6-clock-hand sl-r6-clock-second"></i><i class="sl-r6-clock-center"></i></span><span class="sl-r6-lock-copy"><strong>Presença bloqueada por enquanto</strong><span></span></span>`;
       control.before(notice);
     }
-    notice.textContent = `Presença bloqueada por enquanto. Será liberada às ${schedule.label}, conforme o relógio deste computador.`;
+    const copy = notice.querySelector(".sl-r6-lock-copy span");
+    if (copy) copy.textContent = `Será liberada às ${schedule.label}.`;
+    updatePresenceClock(notice);
   }
 
   function coverRouteTransition(anchor) {
@@ -142,6 +174,6 @@
   observer.observe(document.documentElement, { childList:true, subtree:true });
   fixPodiumTrophies();
   applyFormationPresenceLock();
-  setInterval(applyFormationPresenceLock, 10_000);
+  setInterval(() => { applyFormationPresenceLock(); updatePresenceClock(); }, 1_000);
   window.dispatchEvent(new CustomEvent("santa-luzia:windows-beta-runtime", { detail: { revision } }));
 })();
