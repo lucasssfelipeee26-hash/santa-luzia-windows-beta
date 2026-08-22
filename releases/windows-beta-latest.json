@@ -1,16 +1,16 @@
 {
-  "publishedAt": "2026-08-22T00:35:37.3146331Z",
-  "versionName": "0.1.0-beta.2",
+  "publishedAt": "2026-08-22T00:44:59.5218239Z",
+  "versionName": "0.1.0-beta.3",
   "repository": "lucasssfelipeee26-hash/santa-luzia-windows-beta",
   "setup": {
-    "file": "Santa-Luzia-Beta-Setup-0.1.0-beta.2-x64.exe",
-    "size": 151900172,
-    "sha256": "22ec48c8045cc9385bc266684d4ed474b83b6fdd09f8e693db594f7984af45ae"
+    "file": "Santa-Luzia-Beta-Setup-0.1.0-beta.3-x64.exe",
+    "size": 151908419,
+    "sha256": "c63ab49326105165257be152e6d0c3b7e6d341133b8dcf46b48cd5f958371c4d"
   },
   "portable": {
-    "file": "Santa-Luzia-Beta-Portable-0.1.0-beta.2-x64.exe",
-    "size": 151600845,
-    "sha256": "435649b8828381cfb07ce4c915fe095967f44a9fb4f51b26e288c21c36cc3860"
+    "file": "Santa-Luzia-Beta-Portable-0.1.0-beta.3-x64.exe",
+    "size": 151609084,
+    "sha256": "b1b75a0f87c5afb8f98ae573dec64ecdde209dea1275cfceb4f55472f571b802"
   },
   "androidChannel": "lucasssfelipeee26-hash/comunidade-santa-luzia — 1.0.6/code18"
 }
