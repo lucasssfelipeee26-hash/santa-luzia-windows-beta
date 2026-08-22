@@ -103,7 +103,7 @@ jobs:
           }
           if (-not (Test-Path runtime/windows-beta-runtime.js)) { throw "Runtime consolidado não foi empacotado." }
           $runtime = Get-Content runtime/windows-beta-runtime.js -Raw
-          foreach ($marker in @("enhancePresenceCenter", "ensureEarlyJustification", "organizePublishedScale", "enrichPublishedScaleLiturgy", "organizeFormationManagement", "enhanceDelayClocks", "enhanceProfileAndSoundControls", "enhanceAnimatedNavigationIcons")) {
+          foreach ($marker in @("enhancePresenceCenter", "ensureEarlyJustification", "organizePublishedScale", "enrichPublishedScaleLiturgy", "organizeFormationManagement", "enhanceDelayClocks", "enhanceProfileAndSoundControls", "enhanceAnimatedNavigationIcons", "removeRedundantCopy")) {
             if (-not $runtime.Contains($marker)) { throw "Recurso solicitado ausente do runtime Windows: $marker" }
           }
           $whatajong = Get-Content app/api/jogo/whatajong/resultado/route.ts -Raw

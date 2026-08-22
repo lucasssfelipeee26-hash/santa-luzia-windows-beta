@@ -79,6 +79,8 @@
     .sl-r7-panel-icon i:first-child{left:7px;transform:rotate(40deg)}.sl-r7-panel-icon i:last-child{right:7px;transform:rotate(-40deg);animation-delay:-1.2s}
     @keyframes slR7PrayArms{0%,100%{translate:0 0}50%{translate:0 -3px}}
     @media(prefers-reduced-motion:reduce){.sl-r7-books-icon i,.sl-r7-liturgy-icon::after,.sl-r7-panel-icon i{animation:none!important}}
+    .sl-r7-copy-removed { display:none !important; }
+    .sl-b9-private-presence-head small { display:none !important; }
     @media(max-width:520px){.sl-r7-presence-tools{grid-template-columns:1fr 1fr}.sl-r7-presence-tools input{grid-column:1/-1}}
     [data-sl-r4-presence-locked="true"] { opacity:.58; pointer-events:none !important; user-select:none; }
     .sl-r5-card-trophy { --sl-cup-light:#fff0a4; --sl-cup-main:#d4a526; --sl-cup-dark:#76500b; position:absolute; top:8px; right:8px; z-index:18; width:43px; height:43px; pointer-events:none; filter:drop-shadow(0 8px 8px color-mix(in srgb,var(--sl-cup-dark) 42%,transparent)); animation:slR5CupFloat 3.2s ease-in-out infinite; transform-style:preserve-3d; }
@@ -484,6 +486,24 @@
     }
   }
 
+  function removeRedundantCopy() {
+    const patterns = [
+      /aprenda, jogue e acompanhe sua evolução/i,
+      /jogos da luz e classificação/i,
+      /toque em qualquer membro para ver o recado/i,
+      /escala atualizada e salva neste aparelho/i,
+      /a versão simplificada foi removida/i,
+      /whatajong completo, com sons, peças ilustradas/i,
+      /o mesmo jogo apresentado como base/i,
+    ];
+    document.querySelectorAll("p,small,span,div").forEach((element) => {
+      const content = text(element);
+      if (!content || content.length > 360 || !patterns.some((pattern) => pattern.test(content))) return;
+      if (/escala atualizada e salva/i.test(content)) element.closest(".flex.items-center")?.classList.add("sl-r7-copy-removed");
+      else element.classList.add("sl-r7-copy-removed");
+    });
+  }
+
   function coverRouteTransition(anchor) {
     const href = anchor?.getAttribute("href") || "";
     if (!href || href.startsWith("#")) return;
@@ -519,7 +539,7 @@
   const observer = new MutationObserver(() => {
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); enhanceAnimatedNavigationIcons(); });
+    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); enhanceAnimatedNavigationIcons(); removeRedundantCopy(); });
   });
   observer.observe(document.documentElement, { childList:true, subtree:true });
   fixPodiumTrophies();
@@ -531,6 +551,7 @@
   enhanceDelayClocks();
   enhanceProfileAndSoundControls();
   enhanceAnimatedNavigationIcons();
+  removeRedundantCopy();
   setInterval(() => { applyFormationPresenceLock(); updatePresenceClock(); }, 1_000);
   window.dispatchEvent(new CustomEvent("santa-luzia:windows-beta-runtime", { detail: { revision } }));
 })();
