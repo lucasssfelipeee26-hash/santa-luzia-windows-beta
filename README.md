@@ -10,7 +10,7 @@ Canal de testes para Windows, separado do Android estável.
 - A interface da Beta herda o Android sem badge, tema ou layout exclusivos de Windows.
 - As experiências em teste são empacotadas no executável e só entram após uma atualização nativa do Windows.
 
-## Beta atual — 0.1.0-beta.10
+## Beta atual — 0.1.0-beta.11
 
 Esta versão preserva as correções da beta.9 e adiciona um canal remoto exclusivo do Windows:
 

@@ -18,16 +18,25 @@ let remoteRuntimeInterval = null
 let remoteRuntimeRevision = 0
 let remoteRuntimeScript = ""
 let remoteRuntimeCheckRunning = false
+let remoteRuntimeForcePending = false
 
 async function applyRemoteRuntime(win = mainWindow) {
-  if (!remoteRuntimeScript || !win || win.isDestroyed() || win.webContents.isLoading()) return false
+  if (!remoteRuntimeScript || !win || win.isDestroyed()) return false
+  if (win.webContents.isLoading()) {
+    win.webContents.once("did-finish-load", () => void applyRemoteRuntime(win).catch((error) => console.error("Falha ao reaplicar canal remoto:", error?.message || error)))
+    return false
+  }
   await win.webContents.executeJavaScript(remoteRuntimeScript, true)
   console.log(`Canal remoto Windows aplicado. Revisão: ${remoteRuntimeRevision}`)
   return true
 }
 
 async function checkRemoteRuntime(forceApply = false) {
-  if (!app.isPackaged || remoteRuntimeCheckRunning) return
+  if (!app.isPackaged) return
+  if (remoteRuntimeCheckRunning) {
+    if (forceApply) remoteRuntimeForcePending = true
+    return
+  }
   remoteRuntimeCheckRunning = true
   try {
     const manifest = await remoteRuntimeUpdater.fetchRuntimeManifest(beta.updateRepository)
@@ -42,6 +51,10 @@ async function checkRemoteRuntime(forceApply = false) {
     console.error("Falha no canal remoto exclusivo do Windows Beta:", error?.message || error)
   } finally {
     remoteRuntimeCheckRunning = false
+    if (remoteRuntimeForcePending) {
+      remoteRuntimeForcePending = false
+      setTimeout(() => void checkRemoteRuntime(true), 50)
+    }
   }
 }
 
@@ -131,6 +144,10 @@ function aplicarPolimentoWindows(win) {
   executarScriptNativo(win, "beta7-polish.js", `polimento visual da Beta ${beta.versionName}`)
 }
 
+function aplicarRuntimeWindowsEmpacotado(win) {
+  executarScriptNativo(win, "../runtime/windows-beta-runtime.js", "correções consolidadas da Beta Windows")
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     title: `${beta.appName} ${beta.versionName}`,
@@ -162,6 +179,7 @@ function createWindow() {
     aplicarCssNativo(win)
     aplicarCorrecoesComportamentais(win)
     aplicarPolimentoWindows(win)
+    aplicarRuntimeWindowsEmpacotado(win)
     void checkRemoteRuntime(true)
   })
 

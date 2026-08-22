@@ -98,6 +98,10 @@ jobs:
           foreach ($marker in @("slHeaderMenuEnter", "slTabPanelEnter", ".app-nav-tile")) {
             if (-not $motionCss.Contains($marker)) { throw "Correção CSS complementar incompleta: marcador $marker ausente." }
           }
+          foreach ($marker in @("aplicarRuntimeWindowsEmpacotado", "remoteRuntimeForcePending", "did-finish-load")) {
+            if (-not $main.Contains($marker)) { throw "Correção definitiva do runtime remoto ausente: $marker" }
+          }
+          if (-not (Test-Path runtime/windows-beta-runtime.js)) { throw "Runtime consolidado não foi empacotado." }
           $polish = Get-Content electron/beta7-polish.js -Raw
           foreach ($marker in @("restoreAndroidBottomNav", "sl-b9-private-presence", "allowedPresenceUser", "PRESENCE_KEY_PREFIX")) {
             if (-not $polish.Contains($marker)) { throw "Correção visual e privada da Beta 9 incompleta: $marker ausente." }
