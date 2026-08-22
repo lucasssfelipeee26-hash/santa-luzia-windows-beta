@@ -1,7 +1,7 @@
 "use strict";
 
 (() => {
-  const revision = "3";
+  const revision = "4";
   if (document.documentElement.dataset.windowsBetaRuntime === revision) return;
   document.documentElement.dataset.windowsBetaRuntime = revision;
 
@@ -11,6 +11,8 @@
     .sl-b7-trophy, .sl-trophy-3d { display:none !important; }
     .sl-b7-route-shield { display:none !important; }
     .sl-runtime-route-cover { position:fixed; inset:0; z-index:244; pointer-events:none; background:#fffaf0; opacity:0; }
+    .sl-r4-presence-locked { margin-top:16px; display:flex; align-items:flex-start; gap:8px; border:1px solid #e2c86f; border-radius:16px; background:#fff8e6; padding:12px; color:#6f541a; font-size:14px; line-height:1.45; }
+    [data-sl-r4-presence-locked="true"] { opacity:.58; pointer-events:none !important; user-select:none; }
     .sl-r3-card-trophy { --sl-cup-light:#fff0a4; --sl-cup-main:#d4a526; --sl-cup-dark:#76500b; position:absolute; top:7px; right:6px; z-index:8; width:34px; height:34px; pointer-events:none; filter:drop-shadow(0 6px 7px color-mix(in srgb,var(--sl-cup-dark) 34%,transparent)); animation:slR3CupFloat 3.2s ease-in-out infinite; transform-style:preserve-3d; }
     .sl-r3-card-trophy svg { width:100%; height:100%; overflow:visible; }
     .sl-r3-card-trophy[data-rank="1"] { --sl-cup-light:#fff5b8; --sl-cup-main:#e4b936; --sl-cup-dark:#7b5107; width:39px; height:39px; top:5px; }
@@ -46,6 +48,65 @@
     }
   }
 
+  let serverClockOffset = 0;
+  let serverClockAvailable = false;
+
+  async function syncServerClock() {
+    if (!navigator.onLine) { serverClockAvailable = false; serverClockOffset = 0; return; }
+    const started = Date.now();
+    try {
+      const response = await fetch("/api/formacoes", { method:"GET", cache:"no-store", credentials:"same-origin" });
+      const serverDate = Date.parse(response.headers.get("date") || "");
+      if (!Number.isFinite(serverDate)) throw new Error("Horário do servidor indisponível.");
+      serverClockOffset = serverDate + Math.floor((Date.now() - started) / 2) - Date.now();
+      serverClockAvailable = true;
+    } catch {
+      serverClockOffset = 0;
+      serverClockAvailable = false;
+    }
+  }
+
+  function nowForPresence() {
+    return Date.now() + (serverClockAvailable ? serverClockOffset : 0);
+  }
+
+  function scheduledTimeFromArticle(article) {
+    const heading = [...article.querySelectorAll("p")].find((element) => /\b\d{1,2}:\d{2}\b/.test(text(element)));
+    const match = text(heading).match(/\b(\d{1,2}):(\d{2})\b/);
+    if (!match) return null;
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    if (hours > 23 || minutes > 59) return null;
+    const now = new Date(nowForPresence());
+    const scheduled = new Date(now);
+    scheduled.setHours(hours, minutes, 0, 0);
+    return { at:scheduled.getTime(), label:`${String(hours).padStart(2,"0")}:${String(minutes).padStart(2,"0")}` };
+  }
+
+  function applyFormationPresenceLock() {
+    const prompt = [...document.querySelectorAll("p")].find((element) => text(element) === "Como foi sua participação?");
+    const control = prompt?.closest("[data-no-pull-refresh]");
+    const article = control?.closest("article");
+    document.querySelectorAll(".sl-r4-presence-locked").forEach((notice) => { if (notice.closest("article") !== article) notice.remove(); });
+    if (!control || !article) return;
+    const schedule = scheduledTimeFromArticle(article);
+    const locked = Boolean(schedule && nowForPresence() < schedule.at);
+    control.dataset.slR4PresenceLocked = String(locked);
+    control.querySelectorAll("button,textarea,input").forEach((element) => {
+      if (locked && !element.disabled) { element.disabled = true; element.dataset.slR4Disabled = "true"; }
+      if (!locked && element.dataset.slR4Disabled === "true") { element.disabled = false; delete element.dataset.slR4Disabled; }
+    });
+    let notice = article.querySelector(".sl-r4-presence-locked");
+    if (!locked) { notice?.remove(); return; }
+    if (!notice) {
+      notice = document.createElement("div");
+      notice.className = "sl-r4-presence-locked";
+      notice.setAttribute("role", "status");
+      control.before(notice);
+    }
+    notice.textContent = `Presença bloqueada por enquanto. Será liberada às ${schedule.label}, no horário de início da formação${serverClockAvailable ? " (horário sincronizado pelo servidor)." : " (horário deste computador, modo offline)."}`;
+  }
+
   function coverRouteTransition(anchor) {
     const href = anchor?.getAttribute("href") || "";
     if (!href || href.startsWith("#")) return;
@@ -73,6 +134,8 @@
   }
 
   document.addEventListener("click", (event) => {
+    const lockedPresence = event.target instanceof Element ? event.target.closest('[data-sl-r4-presence-locked="true"]') : null;
+    if (lockedPresence) { event.preventDefault(); event.stopImmediatePropagation(); return; }
     const anchor = event.target instanceof Element ? event.target.closest(".mobile-app-bottom-nav a[href]") : null;
     if (anchor) coverRouteTransition(anchor);
   }, true);
@@ -81,9 +144,15 @@
   const observer = new MutationObserver(() => {
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); });
+    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); });
   });
   observer.observe(document.documentElement, { childList:true, subtree:true });
   fixPodiumTrophies();
+  applyFormationPresenceLock();
+  void syncServerClock().finally(applyFormationPresenceLock);
+  window.addEventListener("online", () => void syncServerClock().finally(applyFormationPresenceLock));
+  window.addEventListener("offline", () => { serverClockAvailable = false; serverClockOffset = 0; applyFormationPresenceLock(); });
+  setInterval(applyFormationPresenceLock, 10_000);
+  setInterval(() => void syncServerClock().finally(applyFormationPresenceLock), 5 * 60_000);
   window.dispatchEvent(new CustomEvent("santa-luzia:windows-beta-runtime", { detail: { revision } }));
 })();
