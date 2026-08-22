@@ -4,6 +4,7 @@ const [owner, repo] = beta.updateRepository.split("/")
 module.exports = {
   appId: "br.com.comunidadesantaluzia.beta",
   productName: beta.appName,
+  generateUpdatesFilesForAllChannels: true,
   extraMetadata: {
     main: "electron/main.cjs",
     version: beta.versionName,
@@ -22,6 +23,7 @@ module.exports = {
       provider: "github",
       owner,
       repo,
+      channel: "beta",
       releaseType: "prerelease",
     },
   ],
