@@ -2,7 +2,9 @@ const { app, BrowserWindow, dialog, shell } = require("electron")
 const { autoUpdater } = require("electron-updater")
 const fs = require("node:fs")
 const path = require("node:path")
+const { spawn } = require("node:child_process")
 const beta = require("../config/windows-beta.json")
+const manifestUpdater = require("./manifest-updater.cjs")
 
 const APP_URL = process.env.SANTA_LUZIA_WINDOWS_BETA_URL || beta.serverUrl
 const ALLOWED_ORIGIN = new URL(APP_URL).origin
@@ -11,6 +13,57 @@ let mainWindow = null
 let updatePromptOpen = false
 let updateCheckRunning = false
 let updateInterval = null
+
+async function installFromManifest(manifest) {
+  if (updatePromptOpen || !mainWindow || mainWindow.isDestroyed()) return false
+  updatePromptOpen = true
+  try {
+    const result = await dialog.showMessageBox(mainWindow, {
+      type: "info",
+      title: "Nova Beta disponível",
+      message: `Santa Luzia Beta ${manifest.versionName} está disponível.`,
+      detail: "O atualizador alternativo encontrou o Setup oficial no GitHub. O arquivo será validado por tamanho e SHA-256 antes da instalação.",
+      buttons: ["Atualizar agora", "Depois"],
+      defaultId: 0,
+      cancelId: 1,
+      noLink: true,
+    })
+    if (result.response !== 0) return false
+
+    const updateDirectory = await fs.promises.mkdtemp(path.join(app.getPath("temp"), "santa-luzia-beta-update-"))
+    const setupPath = path.join(updateDirectory, path.basename(manifest.setup.file))
+    try {
+      await manifestUpdater.downloadValidatedSetup(manifest, setupPath, (progress) => {
+        if (mainWindow && !mainWindow.isDestroyed()) mainWindow.setProgressBar(Math.max(0, Math.min(1, progress)))
+      })
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.setProgressBar(-1)
+      const installer = spawn(setupPath, ["/S"], { detached: true, stdio: "ignore", windowsHide: true })
+      await new Promise((resolve, reject) => {
+        installer.once("spawn", resolve)
+        installer.once("error", reject)
+      })
+      installer.unref()
+      app.quit()
+      return true
+    } catch (error) {
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.setProgressBar(-1)
+      await fs.promises.rm(updateDirectory, { recursive: true, force: true }).catch(() => {})
+      throw error
+    }
+  } finally {
+    updatePromptOpen = false
+  }
+}
+
+async function checkManifestFallback() {
+  const manifest = await manifestUpdater.fetchManifest(beta.updateRepository)
+  if (manifestUpdater.compareVersions(manifest.versionName, app.getVersion()) <= 0) {
+    console.log(`Manifesto direto sem versão mais nova. Instalada: ${app.getVersion()}; manifesto: ${manifest.versionName}`)
+    return false
+  }
+  console.log(`Fallback do manifesto encontrou ${manifest.versionName} para substituir ${app.getVersion()}.`)
+  return installFromManifest(manifest)
+}
 
 app.setName(beta.appName)
 app.setAppUserModelId("br.com.comunidadesantaluzia.beta")
@@ -112,13 +165,21 @@ function createWindow() {
 async function checkForBetaUpdate() {
   if (!app.isPackaged || IS_PORTABLE || updateCheckRunning) return
   updateCheckRunning = true
+  let electronUpdaterFoundNewer = false
   try {
-    await autoUpdater.checkForUpdates()
+    const result = await autoUpdater.checkForUpdates()
+    electronUpdaterFoundNewer = Boolean(result?.updateInfo?.version && manifestUpdater.compareVersions(result.updateInfo.version, app.getVersion()) > 0)
   } catch (error) {
     console.error("Falha ao consultar o canal Beta no GitHub:", error?.message || error)
-  } finally {
-    updateCheckRunning = false
   }
+  if (!electronUpdaterFoundNewer) {
+    try {
+      await checkManifestFallback()
+    } catch (fallbackError) {
+      console.error("Falha no fallback do manifesto Beta:", fallbackError?.message || fallbackError)
+    }
+  }
+  updateCheckRunning = false
 }
 
 function configureUpdater() {

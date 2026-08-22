@@ -63,6 +63,7 @@ jobs:
         shell: pwsh
         run: |
           node --check electron/main.cjs
+          node --check electron/manifest-updater.cjs
           node --check electron/preload-v5.cjs
           node --check electron/behavior-fixes.js
           $main = Get-Content electron/main.cjs -Raw
@@ -95,6 +96,11 @@ jobs:
           foreach ($marker in @("slHeaderMenuEnter", "slTabPanelEnter", ".app-nav-tile")) {
             if (-not $motionCss.Contains($marker)) { throw "Correção CSS complementar incompleta: marcador $marker ausente." }
           }
+
+      - name: Testar fallback pelo manifesto do GitHub
+        working-directory: app
+        shell: pwsh
+        run: npm run test:manifest-updater
 
       - name: Instalar dependências
         working-directory: app
@@ -136,6 +142,10 @@ jobs:
           $betaYmlText = Get-Content $betaYml -Raw
           if (-not $betaYmlText.Contains("version: $($beta.versionName)")) { throw "beta.yml não aponta para $($beta.versionName)." }
           if (-not $betaYmlText.Contains($setup.Name)) { throw "beta.yml não referencia o Setup correto." }
+          $manifestTests = Get-Content app/electron/manifest-updater.test.cjs -Raw
+          foreach ($marker in @("compareVersions", "releaseSetupUrl", "validateSetup")) {
+            if (-not $manifestTests.Contains($marker)) { throw "Cobertura do fallback incompleta: $marker não foi testado." }
+          }
           $setupSha = (Get-FileHash $setup.FullName -Algorithm SHA256).Hash.ToLower()
           $portableSha = (Get-FileHash $portable.FullName -Algorithm SHA256).Hash.ToLower()
           "WINDOWS_BETA_VERSION=$($beta.versionName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
@@ -180,11 +190,12 @@ jobs:
           $notes = @"
           Santa Luzia Beta para Windows — $env:WINDOWS_BETA_VERSION
 
-          Mantém todas as correções da Beta anterior e refaz o instalador Windows.
+          Mantém todas as correções da Beta anterior e corrige definitivamente o auto-update.
 
-          O Setup desta versão foi simplificado para instalação por usuário em um clique,
-          sem exigir administrador, com atalhos do Windows e canal beta do GitHub preservado.
-          O próprio workflow instala o Setup silenciosamente em um Windows real antes de publicar.
+          O electron-updater continua sendo a primeira tentativa. Se o canal beta.yml falhar ou
+          não enxergar a nova versão, o aplicativo consulta diretamente o manifesto oficial,
+          baixa o Setup da release, valida tamanho e SHA-256 e só então executa a instalação.
+          O próprio workflow testa o mecanismo e instala o Setup em um Windows real antes de publicar.
 
           O Android estável 1.0.6/code18 permanece sem estas alterações.
           "@
@@ -208,7 +219,13 @@ jobs:
             publishedAt = (Get-Date).ToUniversalTime().ToString('o')
             versionName = $env:WINDOWS_BETA_VERSION
             repository = $env:GITHUB_REPOSITORY
-            setup = [ordered]@{ file = (Split-Path $env:WINDOWS_BETA_SETUP -Leaf); size = [int64]$env:WINDOWS_BETA_SETUP_SIZE; sha256 = $env:WINDOWS_BETA_SETUP_SHA }
+            releaseTag = "windows-beta-v$env:WINDOWS_BETA_VERSION"
+            setup = [ordered]@{
+              file = (Split-Path $env:WINDOWS_BETA_SETUP -Leaf)
+              size = [int64]$env:WINDOWS_BETA_SETUP_SIZE
+              sha256 = $env:WINDOWS_BETA_SETUP_SHA
+              downloadUrl = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/windows-beta-v$env:WINDOWS_BETA_VERSION/$(Split-Path $env:WINDOWS_BETA_SETUP -Leaf)"
+            }
             portable = [ordered]@{ file = (Split-Path $env:WINDOWS_BETA_PORTABLE -Leaf); size = [int64]$env:WINDOWS_BETA_PORTABLE_SIZE; sha256 = $env:WINDOWS_BETA_PORTABLE_SHA }
             androidChannel = 'lucasssfelipeee26-hash/comunidade-santa-luzia — 1.0.6/code18'
           }

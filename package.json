@@ -16,6 +16,7 @@
     "android:sync": "npx cap sync android",
     "android:open": "npx cap open android",
     "android:run": "npx cap run android",
+    "test:manifest-updater": "node --test electron/manifest-updater.test.cjs",
     "windows:beta": "electron electron/main.cjs",
     "windows:beta:dist": "electron-builder --config electron-builder.config.cjs --win --x64 --publish never"
   },
