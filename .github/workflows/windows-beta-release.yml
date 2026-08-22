@@ -121,7 +121,7 @@ jobs:
         shell: pwsh
         run: npm run windows:beta:dist
 
-      - name: Validar artefatos e metadados de atualização
+      - name: Validar artefatos, beta.yml e versão
         shell: pwsh
         run: |
           $beta = Get-Content app/config/windows-beta.json | ConvertFrom-Json
@@ -131,8 +131,11 @@ jobs:
           if (-not $portable) { throw "Portable EXE não foi gerado." }
           if ($setup.Length -lt 20MB) { throw "Setup EXE é menor que o esperado." }
           if ($portable.Length -lt 20MB) { throw "Portable EXE é menor que o esperado." }
-          $updateMetadata = Get-ChildItem app/dist-windows -File | Where-Object { $_.Name -match '^(latest|beta).*\.yml$' } | Select-Object -First 1
-          if (-not $updateMetadata) { throw "Metadado do auto-update não foi gerado." }
+          $betaYml = Join-Path (Resolve-Path app/dist-windows) "beta.yml"
+          if (-not (Test-Path $betaYml)) { throw "beta.yml não foi gerado; auto-update Beta seria quebrado." }
+          $betaYmlText = Get-Content $betaYml -Raw
+          if (-not $betaYmlText.Contains("version: $($beta.versionName)")) { throw "beta.yml não aponta para $($beta.versionName)." }
+          if (-not $betaYmlText.Contains($setup.Name)) { throw "beta.yml não referencia o Setup correto." }
           $setupSha = (Get-FileHash $setup.FullName -Algorithm SHA256).Hash.ToLower()
           $portableSha = (Get-FileHash $portable.FullName -Algorithm SHA256).Hash.ToLower()
           "WINDOWS_BETA_VERSION=$($beta.versionName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
@@ -142,6 +145,19 @@ jobs:
           "WINDOWS_BETA_PORTABLE_SIZE=$($portable.Length)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "WINDOWS_BETA_SETUP_SHA=$setupSha" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
           "WINDOWS_BETA_PORTABLE_SHA=$portableSha" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Testar o Setup em Windows real
+        shell: pwsh
+        run: |
+          $setup = Get-Item $env:WINDOWS_BETA_SETUP
+          $process = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -PassThru -Wait
+          if ($process.ExitCode -ne 0) { throw "Setup abriu, mas terminou com código $($process.ExitCode)." }
+          Start-Sleep -Seconds 3
+          $programRoot = Join-Path $env:LOCALAPPDATA "Programs"
+          $installed = Get-ChildItem $programRoot -Recurse -Filter "Santa Luzia Beta.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $installed) { throw "Setup terminou, mas o executável instalado não foi encontrado em $programRoot." }
+          Write-Host "Setup testado com sucesso: $($installed.FullName)"
+          Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $installed.FullName } | Stop-Process -Force -ErrorAction SilentlyContinue
 
       - name: Guardar artefatos para validação
         uses: actions/upload-artifact@v4
@@ -164,16 +180,11 @@ jobs:
           $notes = @"
           Santa Luzia Beta para Windows — $env:WINDOWS_BETA_VERSION
 
-          Consolidação definitiva das correções do vídeo de validação.
+          Mantém todas as correções da Beta anterior e refaz o instalador Windows.
 
-          Esta versão preserva as correções comportamentais já preparadas e soma
-          a nova camada visual nativa: transições, Santa Luzia, cards, menus, abas,
-          Presença, Formação, navegação inferior e ranking com pódio proporcional,
-          giro único dos avatares, halos ouro/prata/bronze, troféu 3D, pontos animados
-          e avisos de novo líder, Top 3 e ultrapassagem.
-
-          Também permanecem: presença diária com sequência, tarefas em tela cheia,
-          feedback de Conferir resultado e fallback de navegação/Voltar.
+          O Setup desta versão foi simplificado para instalação por usuário em um clique,
+          sem exigir administrador, com atalhos do Windows e canal beta do GitHub preservado.
+          O próprio workflow instala o Setup silenciosamente em um Windows real antes de publicar.
 
           O Android estável 1.0.6/code18 permanece sem estas alterações.
           "@
