@@ -10,14 +10,15 @@ Canal de testes para Windows, separado do Android estável.
 - A interface da Beta herda o Android sem badge, tema ou layout exclusivos de Windows.
 - As experiências em teste são empacotadas no executável e só entram após uma atualização nativa do Windows.
 
-## Beta atual — 0.1.0-beta.8
+## Beta atual — 0.1.0-beta.9
 
-Esta versão preserva todas as melhorias da beta.7 e corrige o auto-update do Windows:
+Esta versão preserva o auto-update reforçado da beta.8 e corrige a experiência mostrada no vídeo:
 
-- mantém `electron-updater` e `beta.yml` como primeira tentativa;
-- usa o manifesto oficial no GitHub como fallback independente;
-- compara a versão instalada, baixa somente o Setup da release correspondente e valida tamanho e SHA-256;
-- executa a instalação silenciosa somente depois da validação;
+- restaura a navegação inferior exatamente na geometria original do Android;
+- mantém um único troféu 3D no lugar do ícone pequeno, sem estrela central e com halo luminoso animado;
+- exibe dentro do ranking o acompanhamento semanal privado, separado pelo ID da conta autenticada;
+- limita esse acompanhamento ao próprio acólito, coroinha ou moderador logado;
+- mantém `electron-updater`, `beta.yml` e o manifesto oficial como fallback independente;
 - mantém o Android estável 1.0.6/code18 congelado no mesmo commit.
 
 Melhorias acumuladas do canal Beta:

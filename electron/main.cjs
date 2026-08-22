@@ -96,8 +96,8 @@ function aplicarCorrecoesComportamentais(win) {
   executarScriptNativo(win, "behavior-fixes.js", "correções comportamentais da Beta Windows")
 }
 
-function aplicarPolimentoBeta7(win) {
-  executarScriptNativo(win, "beta7-polish.js", "polimento visual da Beta 0.1.0-beta.7")
+function aplicarPolimentoWindows(win) {
+  executarScriptNativo(win, "beta7-polish.js", `polimento visual da Beta ${beta.versionName}`)
 }
 
 function createWindow() {
@@ -130,7 +130,7 @@ function createWindow() {
   win.webContents.on("did-finish-load", () => {
     aplicarCssNativo(win)
     aplicarCorrecoesComportamentais(win)
-    aplicarPolimentoBeta7(win)
+    aplicarPolimentoWindows(win)
   })
 
   win.webContents.setWindowOpenHandler(({ url }) => {

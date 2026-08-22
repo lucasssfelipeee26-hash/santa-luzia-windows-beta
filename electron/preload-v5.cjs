@@ -71,8 +71,6 @@ function injetarEstilos() {
     :where(button,a[href],[role="button"]) { -webkit-tap-highlight-color: transparent; }
     :where(button,a[href],[role="button"]) { transition: transform 130ms ease, filter 160ms ease, box-shadow 180ms ease; }
     :where(button,a[href],[role="button"]):active { transform: scale(.972); }
-    .mobile-app-bottom-nav a > span { transition: transform 230ms var(--sl-ease), box-shadow 230ms ease !important; }
-    .mobile-app-bottom-nav a[aria-current="page"] > span { transform: translateY(-4px) scale(1.06); box-shadow: 0 8px 20px rgba(123,19,38,.22) !important; }
     .sl-podium-grid { perspective: 900px; align-items: end !important; }
     .sl-podium-card { isolation:isolate; overflow:visible !important; transform-style:preserve-3d; }
     .sl-podium-1 { order:2 !important; min-height:184px; border-color:rgba(196,151,34,.62) !important; box-shadow:0 16px 38px rgba(160,120,25,.17) !important; }
@@ -107,7 +105,7 @@ function injetarEstilos() {
     .sl-formation-highlight { position:relative; overflow:hidden; }
     .sl-formation-highlight::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 62%); transform:translateX(-140%); animation:slFormationSheen 4.2s ease-in-out infinite; }
     @keyframes slFormationSheen { 0%,64% { transform:translateX(-140%); } 86%,100% { transform:translateX(140%); } }
-    @media (prefers-reduced-motion: reduce) { .sl-top-avatar::before, .sl-trophy-3d::after, .sl-formation-highlight::after { animation:none !important; } .mobile-app-bottom-nav a[aria-current="page"] > span { transform:none; } }
+    @media (prefers-reduced-motion: reduce) { .sl-top-avatar::before, .sl-trophy-3d::after, .sl-formation-highlight::after { animation:none !important; } }
   `
   document.head?.appendChild(style)
   document.documentElement.dataset.windowsMotionVersion = PATCH_VERSION
@@ -183,13 +181,9 @@ function aplicarDialogs() {
 function aplicarBottomNav() {
   const nav = document.querySelector(".mobile-app-bottom-nav")
   if (!nav) return
-  const ativo = nav.querySelector('a[aria-current="page"]')
-  if (!ativo) return
-  const href = ativo.getAttribute("href") || texto(ativo)
-  if (nav.dataset.slActiveHref === href) return
-  nav.dataset.slActiveHref = href
-  const icon = ativo.querySelector("span") || ativo
-  animar(icon,[{ transform:"translateY(1px) scale(.88)", opacity:.65 }, { transform:"translateY(-6px) scale(1.11)", opacity:1, offset:.62 }, { transform:"translateY(-4px) scale(1.06)", opacity:1 }], { duration:360, id:"sl-bottom-active" })
+  delete nav.dataset.slActiveHref
+  nav.querySelectorAll(".sl-b7-nav-pill").forEach((el) => el.remove())
+  nav.querySelectorAll("a,span").forEach((el) => el.getAnimations?.().filter((a) => a.id === "sl-bottom-active").forEach((a) => a.cancel()))
 }
 
 function aplicarTabs() {
@@ -302,8 +296,6 @@ function aplicarRanking() {
     if (points && (entrando || mudou)) animar(points,[{transform:"scale(.78)",opacity:.5},{transform:"scale(1.16)",opacity:1,offset:.65},{transform:"scale(1)",opacity:1}],{duration:400,delay:160+index*70,id:`sl-points-${pos}`})
     if (entrando) animar(card,[{opacity:0,transform:"translateY(16px) scale(.95)"},{opacity:1,transform:"translateY(0) scale(1)"}],{duration:460,delay:80+index*80,id:`sl-podium-card-${pos}`})
   })
-  const header = title.parentElement
-  if (header && !header.querySelector(".sl-trophy-3d")) { const oldIcon = [...header.querySelectorAll("svg")].find((svg)=>svg.getBoundingClientRect().width <= 32); if (oldIcon instanceof HTMLElement) oldIcon.style.display = "none"; header.appendChild(criarTrofeu3D()) }
   const entries = coletarRanking(secao,cards); if (entrando || mudou) compararRanking(entries); rankingVisivel = true
 }
 

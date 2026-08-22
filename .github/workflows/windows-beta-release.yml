@@ -96,11 +96,21 @@ jobs:
           foreach ($marker in @("slHeaderMenuEnter", "slTabPanelEnter", ".app-nav-tile")) {
             if (-not $motionCss.Contains($marker)) { throw "Correção CSS complementar incompleta: marcador $marker ausente." }
           }
+          $polish = Get-Content electron/beta7-polish.js -Raw
+          foreach ($marker in @("restoreAndroidBottomNav", "sl-b9-private-presence", "allowedPresenceUser", "PRESENCE_KEY_PREFIX")) {
+            if (-not $polish.Contains($marker)) { throw "Correção visual e privada da Beta 9 incompleta: $marker ausente." }
+          }
+          if ($polish.Contains('id="b7Medal"') -or $polish.Contains('M46 27.4l2.2 4.5')) { throw "A estrela central ainda está presente no troféu." }
 
       - name: Testar fallback pelo manifesto do GitHub
         working-directory: app
         shell: pwsh
         run: npm run test:manifest-updater
+
+      - name: Testar correções visuais e privacidade da Beta Windows
+        working-directory: app
+        shell: pwsh
+        run: npm run test:windows-polish
 
       - name: Instalar dependências
         working-directory: app
@@ -215,12 +225,13 @@ jobs:
           $notes = @"
           Santa Luzia Beta para Windows — $env:WINDOWS_BETA_VERSION
 
-          Mantém todas as correções da Beta anterior e corrige definitivamente o auto-update.
+          Mantém todas as correções da Beta anterior e aplica os ajustes solicitados no vídeo.
 
-          O electron-updater continua sendo a primeira tentativa. Se o canal beta.yml falhar ou
-          não enxergar a nova versão, o aplicativo consulta diretamente o manifesto oficial,
-          baixa o Setup da release, valida tamanho e SHA-256 e só então executa a instalação.
-          O próprio workflow testa o mecanismo e instala o Setup em um Windows real antes de publicar.
+          A navegação inferior volta à geometria original do Android, sem sobreposição da camada Windows.
+          O ranking passa a usar um único troféu 3D, sem estrela central e com o halo luminoso preservado.
+          O acompanhamento semanal fica dentro do ranking, isolado pelo ID da conta autenticada e
+          visível somente para acólitos, coroinhas e moderadores. O auto-update duplo da Beta 8 é mantido.
+          O próprio workflow testa os mecanismos e instala o Setup em um Windows real antes de publicar.
 
           O Android estável 1.0.6/code18 permanece sem estas alterações.
           "@
