@@ -1,7 +1,7 @@
 "use strict";
 
 (() => {
-  const revision = "8";
+  const revision = "9";
   if (document.documentElement.dataset.windowsBetaRuntime === revision) return;
   document.documentElement.dataset.windowsBetaRuntime = revision;
 
@@ -23,6 +23,8 @@
     .sl-r8-native-clock { width:32px; height:32px; flex:0 0 32px; color:#8f1934; overflow:visible; }
     .sl-r8-native-clock .sl-clock-hour,.sl-r8-native-clock .sl-clock-minute,.sl-r8-native-clock .sl-clock-second { transform-box:view-box; transform-origin:12px 12px; stroke:currentColor; stroke-linecap:round; }
     .sl-r8-native-clock .sl-clock-second { stroke:#d49b20; }
+    .sl-r8-clock-source { overflow:visible; }
+    .sl-r8-clock-source polyline,.sl-r8-clock-source path:last-child { transform-box:view-box; transform-origin:center; transition:transform 160ms linear; }
     .sl-r6-lock-copy strong { display:block; color:#6f1d30; font-size:13px; }
     .sl-r6-lock-copy span { display:block; margin-top:2px; font-size:12px; }
     .sl-b9-private-presence { animation:slR6DailyLoginEnter 440ms cubic-bezier(.2,.78,.2,1) both !important; }
@@ -325,7 +327,10 @@
 
   function enhancePresenceCenter() {
     if (!location.pathname.includes("/area-restrita/moderador/presencas")) return;
-    if (document.querySelector('[data-windows-beta-presence-center="true"]')) return;
+    if (document.querySelector('[data-windows-beta-presence-center="true"]')) {
+      document.querySelectorAll(".sl-r7-presence-tools,.sl-r7-admin-record").forEach((element) => element.remove());
+      return;
+    }
     [...document.querySelectorAll("h1,h2")].forEach((heading) => { if (text(heading) === "Controle de Presenças") heading.textContent = "Central de Presenças e Registros"; });
     const selected = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].find((tab) => /Equipe|Formações|Histórico/.test(text(tab)));
     const panel = document.querySelector('section[role="tabpanel"]');
@@ -356,6 +361,10 @@
   let scaleLiturgyPromise = null;
   function enrichPublishedScaleLiturgy() {
     if (!location.pathname.toLowerCase().includes("escala")) return Promise.resolve();
+    if (document.querySelector("[data-windows-beta-scale]")) {
+      document.querySelectorAll(".sl-r7-liturgy-meta").forEach((element) => element.remove());
+      return Promise.resolve();
+    }
     if (!scaleLiturgyPromise) scaleLiturgyPromise = fetch("/api/escalas", { cache:"no-store", credentials:"same-origin" }).then((response) => response.ok ? response.json() : null).then((data) => Array.isArray(data?.escalas) ? data.escalas : []).catch(() => []);
     return scaleLiturgyPromise.then(async (scales) => {
       for (const scale of scales) {
@@ -416,7 +425,10 @@
   }
 
   function organizeFormationManagement() {
-    if (document.querySelector('[data-windows-beta-formation-manager="true"]')) return;
+    if (document.querySelector('[data-windows-beta-formation-manager="true"]')) {
+      document.querySelectorAll(".sl-r7-formation-archive-tools").forEach((element) => element.remove());
+      return;
+    }
     const title = [...document.querySelectorAll("h3")].find((heading) => text(heading) === "Formações publicadas");
     const list = title?.parentElement?.querySelector(":scope > div.space-y-3");
     if (!title || !list) return;
@@ -448,19 +460,15 @@
   }
 
   function enhanceDelayClocks() {
-    const targets = [...document.querySelectorAll('a[href*="/atrasos"],button,main h1,main h2,main h3,main div,main span')].filter((element) => {
-      const content = text(element);
-      return content.length < 100 && /Atrasos|Pontualidade/.test(content) && Boolean(element.querySelector(":scope > svg"));
-    });
+    document.querySelectorAll('.sl-r8-native-clock[data-sl-generated-delay="true"],.sl-r7-delay-clock').forEach((element) => element.remove());
+    document.querySelectorAll('.sl-r7-delay-source').forEach((element) => element.classList.remove('sl-r7-delay-source'));
+    const targets = [...document.querySelectorAll('a[href*="/atrasos"],button,main h1,main h2,main h3')].filter((element) => /Atrasos|Pontualidade/.test(text(element)));
     for (const target of targets) {
-      const host = target.matches("a") ? target : target.parentElement;
-      if (!host || target.closest(".sl-r4-presence-locked") || host.closest("[data-sl-delay-clock-host='true']") || host.querySelector(":scope > .sl-r7-delay-clock")) continue;
-      host.dataset.slDelayClockHost = "true";
-      const source = host.querySelector(":scope > svg");
-      if (!source) continue;
-      source.outerHTML = clockMarkup();
-      updatePresenceClock(host);
+      const source = target.querySelector("svg") || target.parentElement?.querySelector(":scope > svg");
+      source?.classList.add("sl-r8-clock-source");
     }
+    const seconds = new Date(nowForPresence()).getSeconds();
+    document.querySelectorAll(".sl-r8-clock-source polyline,.sl-r8-clock-source path:last-child").forEach((hand) => { hand.style.transform = `rotate(${seconds * 6}deg)`; });
   }
 
   const catholicEmojis = ["✝️","⛪","🙏","🕊️","🕯️","📖","🌹","❤️‍🔥","👼","🛐"];
@@ -604,7 +612,16 @@
 
   document.addEventListener("click", (event) => {
     const anchor = event.target instanceof Element ? event.target.closest(".mobile-app-bottom-nav a[href]") : null;
-    if (anchor) coverRouteTransition(anchor);
+    if (!anchor) return;
+    const href = anchor.getAttribute("href") || "";
+    if (href.startsWith("/area-restrita/ranking")) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      coverRouteTransition(anchor);
+      location.assign(new URL(href, location.origin).href);
+      return;
+    }
+    coverRouteTransition(anchor);
   }, true);
 
   let scheduled = false;
