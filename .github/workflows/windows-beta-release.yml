@@ -163,6 +163,7 @@ jobs:
           Write-Host "Executando Setup real: $($setup.Name) ($($setup.Length) bytes)"
           $process = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -PassThru -Wait
           if ($process.ExitCode -ne 0) {
+            Write-Output "::error title=Setup retornou erro::O instalador real terminou com o código $($process.ExitCode)."
             "### Falha no Setup`nO instalador terminou com código $($process.ExitCode)." | Out-File $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
             throw "Setup abriu, mas terminou com código $($process.ExitCode)."
           }
@@ -174,14 +175,21 @@ jobs:
           }
           if (-not $installed) {
             $inventory = Get-ChildItem $programRoot -Recurse -File -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+            Write-Output "::error title=Executável instalado ausente::O Setup retornou sucesso, mas Santa Luzia Beta.exe não apareceu em $programRoot."
             "### Falha no Setup`nO instalador retornou sucesso, mas o executável não apareceu. Arquivos encontrados:`n$($inventory -join "`n")" | Out-File $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
             throw "Setup terminou, mas o executável instalado não foi encontrado em $programRoot."
           }
           $appUpdateYml = Join-Path $installed.Directory.FullName "resources\app-update.yml"
-          if (-not (Test-Path $appUpdateYml)) { throw "Setup instalou o aplicativo, mas app-update.yml está ausente." }
+          if (-not (Test-Path $appUpdateYml)) {
+            Write-Output "::error title=Configuração do updater ausente::app-update.yml não foi instalado em $appUpdateYml."
+            throw "Setup instalou o aplicativo, mas app-update.yml está ausente."
+          }
           $appUpdateText = Get-Content $appUpdateYml -Raw
           foreach ($marker in @("provider: github", "repo: santa-luzia-windows-beta")) {
-            if (-not $appUpdateText.Contains($marker)) { throw "app-update.yml instalado não contém: $marker" }
+            if (-not $appUpdateText.Contains($marker)) {
+              Write-Output "::error title=Configuração do updater inválida::app-update.yml não contém '$marker'. Conteúdo: $($appUpdateText -replace "`r?`n", "; ")"
+              throw "app-update.yml instalado não contém: $marker"
+            }
           }
           Write-Host "Setup testado com sucesso: $($installed.FullName)"
           Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $installed.FullName } | Stop-Process -Force -ErrorAction SilentlyContinue
