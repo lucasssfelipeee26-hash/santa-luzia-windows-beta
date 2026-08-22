@@ -65,7 +65,13 @@
     .sl-r7-compact-sounds p { font-size:9px !important; line-height:1.25 !important; }
     .sl-r7-compact-sounds > div:nth-of-type(2) { margin-top:6px !important; gap:4px !important; }
     .sl-r7-compact-sounds button { min-height:28px !important; padding-top:3px !important; padding-bottom:3px !important; font-size:9px !important; }
-    .sl-r7-animated-nav-source { display:none !important; }
+    .sl-r7-animated-nav-source { transform-box:fill-box; transform-origin:center; will-change:transform; }
+    .sl-r7-animate-books { animation:slR7OriginalBookMotion 2.8s ease-in-out infinite; }
+    .sl-r7-animate-liturgy { animation:slR7OriginalPageMotion 3.2s ease-in-out infinite; }
+    .sl-r7-animate-panel { animation:slR7OriginalPanelMotion 2.6s ease-in-out infinite; }
+    @keyframes slR7OriginalBookMotion{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-1px) rotate(-2deg)}}
+    @keyframes slR7OriginalPageMotion{0%,100%{transform:perspective(60px) rotateY(0)}50%{transform:perspective(60px) rotateY(-10deg)}}
+    @keyframes slR7OriginalPanelMotion{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.03)}}
     .sl-r7-books-icon,.sl-r7-liturgy-icon,.sl-r7-panel-icon { position:relative; display:inline-block; width:28px; height:28px; flex:0 0 28px; }
     .sl-r7-books-icon i { position:absolute; left:3px; width:22px; height:6px; border-radius:2px; box-shadow:0 2px 3px rgba(65,32,29,.14); transform-origin:50% 50%; animation:slR7BookShift 3s ease-in-out infinite; }
     .sl-r7-books-icon i:nth-child(1){bottom:3px;background:#7b1326}.sl-r7-books-icon i:nth-child(2){bottom:10px;background:#d4af37;animation-delay:-1s}.sl-r7-books-icon i:nth-child(3){bottom:17px;background:#315e4d;animation-delay:-2s}
@@ -78,9 +84,16 @@
     .sl-r7-panel-icon i { position:absolute; top:12px; width:3px; height:13px; border-radius:3px; background:#d9a17c; transform-origin:50% 90%; animation:slR7PrayArms 2.4s ease-in-out infinite; z-index:2; }
     .sl-r7-panel-icon i:first-child{left:7px;transform:rotate(40deg)}.sl-r7-panel-icon i:last-child{right:7px;transform:rotate(-40deg);animation-delay:-1.2s}
     @keyframes slR7PrayArms{0%,100%{translate:0 0}50%{translate:0 -3px}}
-    @media(prefers-reduced-motion:reduce){.sl-r7-books-icon i,.sl-r7-liturgy-icon::after,.sl-r7-panel-icon i{animation:none!important}}
+    @media(prefers-reduced-motion:reduce){.sl-r7-books-icon i,.sl-r7-liturgy-icon::after,.sl-r7-panel-icon i,.sl-r7-animated-nav-source{animation:none!important}}
     .sl-r7-copy-removed { display:none !important; }
     .sl-b9-private-presence-head small { display:none !important; }
+    .sl-r7-theme-picker { display:flex; align-items:center; gap:10px; margin:0 0 14px; border:1px solid #e1d7d1; border-radius:16px; background:#fff; padding:10px 12px; box-shadow:0 6px 18px rgba(61,32,28,.06); }
+    .sl-r7-theme-picker b { color:#5f1423; font-size:12px; }
+    .sl-r7-theme-picker select { min-height:38px; min-width:0; flex:1; border:1px solid #ded5d0; border-radius:11px; background:#fff; padding:7px 9px; font-size:11px; }
+    .sl-r7-notification-expiring { transition:opacity 220ms ease,transform 220ms ease,max-height 260ms ease,margin 260ms ease,padding 260ms ease; }
+    .sl-r7-notification-expired { opacity:0 !important; transform:translateY(-4px); max-height:0 !important; margin-top:0 !important; margin-bottom:0 !important; padding-top:0 !important; padding-bottom:0 !important; overflow:hidden !important; pointer-events:none !important; }
+    html[data-sl-personal-theme="azul"]{--primary:#175c9c;--sidebar-primary:#175c9c}html[data-sl-personal-theme="amarelo"]{--primary:#9a731d;--sidebar-primary:#9a731d}html[data-sl-personal-theme="verde"]{--primary:#176b4b;--sidebar-primary:#176b4b}html[data-sl-personal-theme="rosa"]{--primary:#a83d70;--sidebar-primary:#a83d70}html[data-sl-personal-theme="vermelho"]{--primary:#8f1934;--sidebar-primary:#8f1934}html[data-sl-personal-theme="roxo"]{--primary:#69419b;--sidebar-primary:#69419b}html[data-sl-personal-theme="cinza"]{--primary:#55616c;--sidebar-primary:#55616c}
+    html[data-sl-personal-theme^="gradiente-"] body{background-attachment:fixed!important;background-size:cover!important}html[data-sl-personal-theme="gradiente-azul"] body{background-image:linear-gradient(145deg,#eef7ff,#dbeaff)!important}html[data-sl-personal-theme="gradiente-amarelo"] body{background-image:linear-gradient(145deg,#fffdf2,#fff0b8)!important}html[data-sl-personal-theme="gradiente-verde"] body{background-image:linear-gradient(145deg,#f1fff8,#d8f2e4)!important}
     @media(max-width:520px){.sl-r7-presence-tools{grid-template-columns:1fr 1fr}.sl-r7-presence-tools input{grid-column:1/-1}}
     [data-sl-r4-presence-locked="true"] { opacity:.58; pointer-events:none !important; user-select:none; }
     .sl-r5-card-trophy { --sl-cup-light:#fff0a4; --sl-cup-main:#d4a526; --sl-cup-dark:#76500b; position:absolute; top:8px; right:8px; z-index:18; width:43px; height:43px; pointer-events:none; filter:drop-shadow(0 8px 8px color-mix(in srgb,var(--sl-cup-dark) 42%,transparent)); animation:slR5CupFloat 3.2s ease-in-out infinite; transform-style:preserve-3d; }
@@ -99,6 +112,10 @@
 
   function trophyMarkup(rank) {
     return `<svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="slR3Cup${rank}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--sl-cup-light)"/><stop offset=".45" stop-color="var(--sl-cup-main)"/><stop offset="1" stop-color="var(--sl-cup-dark)"/></linearGradient></defs><g fill="url(#slR3Cup${rank})"><path d="M18 8h28v8c0 13-5 22-11 26v7h7v5H22v-5h7v-7c-6-4-11-13-11-26z"/><path d="M18 13H9v7c0 9 5 15 12 17v-6c-4-2-6-6-6-11v-1h3zm28 0h9v7c0 9-5 15-12 17v-6c4-2 6-6 6-11v-1h-3z"/><rect x="17" y="54" width="30" height="5" rx="2.5"/></g><path d="M25 13h14c-1 10-3 17-7 21-4-4-6-11-7-21z" fill="var(--sl-cup-light)" opacity=".25"/></svg>`;
+  }
+
+  function clockMarkup() {
+    return '<em class="n12">12</em><em class="n3">3</em><em class="n6">6</em><em class="n9">9</em><i class="sl-r6-clock-hand sl-r6-clock-hour"></i><i class="sl-r6-clock-hand sl-r6-clock-minute"></i><i class="sl-r6-clock-hand sl-r6-clock-second"></i><i class="sl-r6-clock-center"></i>';
   }
 
   function fixPodiumTrophies() {
@@ -194,7 +211,7 @@
       notice = document.createElement("div");
       notice.className = "sl-r4-presence-locked";
       notice.setAttribute("role", "status");
-      notice.innerHTML = `<span class="sl-r6-clock" role="img"><i class="sl-r6-clock-hand sl-r6-clock-hour"></i><i class="sl-r6-clock-hand sl-r6-clock-minute"></i><i class="sl-r6-clock-hand sl-r6-clock-second"></i><i class="sl-r6-clock-center"></i></span><span class="sl-r6-lock-copy"><strong>Presença bloqueada por enquanto</strong><span></span></span>`;
+      notice.innerHTML = `<span class="sl-r6-clock sl-r7-delay-clock" role="img">${clockMarkup()}</span><span class="sl-r6-lock-copy"><strong>Presença bloqueada por enquanto</strong><span></span></span>`;
       control.before(notice);
     }
     const copy = notice.querySelector(".sl-r6-lock-copy span");
@@ -423,13 +440,14 @@
     });
     for (const target of targets) {
       const host = target.matches("a") ? target : target.parentElement;
-      if (!host || host.querySelector(":scope > .sl-r7-delay-clock")) continue;
+      if (!host || target.closest(".sl-r4-presence-locked") || host.closest("[data-sl-delay-clock-host='true']") || host.querySelector(":scope > .sl-r7-delay-clock")) continue;
+      host.dataset.slDelayClockHost = "true";
       const source = host.querySelector(":scope > svg");
       source?.classList.add("sl-r7-delay-source");
       const clock = document.createElement("span");
       clock.className = "sl-r6-clock sl-r7-delay-clock";
       clock.setAttribute("role","img");
-      clock.innerHTML = '<em class="n12">12</em><em class="n3">3</em><em class="n6">6</em><em class="n9">9</em><i class="sl-r6-clock-hand sl-r6-clock-hour"></i><i class="sl-r6-clock-hand sl-r6-clock-minute"></i><i class="sl-r6-clock-hand sl-r6-clock-second"></i><i class="sl-r6-clock-center"></i>';
+      clock.innerHTML = clockMarkup();
       source?.after(clock) || host.prepend(clock);
       updatePresenceClock(clock.parentElement || document);
     }
@@ -470,19 +488,18 @@
 
   function enhanceAnimatedNavigationIcons() {
     const definitions = [
-      { pattern:/Biblioteca/i, className:"sl-r7-books-icon", markup:"<i></i><i></i><i></i>" },
-      { pattern:/Liturgia/i, className:"sl-r7-liturgy-icon", markup:"" },
-      { pattern:/Painel/i, className:"sl-r7-panel-icon", markup:"<i></i><i></i>" },
+      { pattern:/Biblioteca/i, className:"sl-r7-animate-books" },
+      { pattern:/Liturgia/i, className:"sl-r7-animate-liturgy" },
+      { pattern:/Painel/i, className:"sl-r7-animate-panel" },
     ];
     for (const element of document.querySelectorAll("a,button,h1,h2,h3")) {
       const content = text(element);
       if (content.length > 80) continue;
       const definition = definitions.find((item) => item.pattern.test(content));
-      if (!definition || element.querySelector(`:scope > .${definition.className}`)) continue;
+      if (!definition) continue;
       const source = element.querySelector(":scope > svg");
-      if (!source) continue;
-      source.classList.add("sl-r7-animated-nav-source");
-      const icon = document.createElement("span"); icon.className=definition.className; icon.setAttribute("aria-hidden","true"); icon.innerHTML=definition.markup; source.after(icon);
+      if (!source || source.classList.contains(definition.className)) continue;
+      source.classList.add("sl-r7-animated-nav-source", definition.className);
     }
   }
 
@@ -502,6 +519,52 @@
       if (/escala atualizada e salva/i.test(content)) element.closest(".flex.items-center")?.classList.add("sl-r7-copy-removed");
       else element.classList.add("sl-r7-copy-removed");
     });
+  }
+
+  function enhancePersonalThemePicker() {
+    const key="santa-luzia:windows-beta:personal-theme:v1";
+    const saved=localStorage.getItem(key)||"vermelho";
+    document.documentElement.dataset.slPersonalTheme=saved;
+    if (document.querySelector(".sl-r7-theme-picker")) return;
+    const onMemberArea=location.pathname.includes("/area-restrita/membro");
+    const onThemePage=location.pathname.includes("/moderador/tema");
+    if (!onMemberArea && !onThemePage) return;
+    const host=document.querySelector("main > div")||document.querySelector("main"); if(!host)return;
+    const picker=document.createElement("section");picker.className="sl-r7-theme-picker";
+    picker.innerHTML='<b>Cores</b><select aria-label="Escolher tema pessoal"><option value="vermelho">Vermelho</option><option value="roxo">Roxo</option><option value="azul">Azul</option><option value="amarelo">Amarelo</option><option value="verde">Verde</option><option value="rosa">Rosa</option><option value="cinza">Cinza</option><option value="gradiente-azul">Degradê azul</option><option value="gradiente-amarelo">Degradê amarelo</option><option value="gradiente-verde">Degradê verde</option></select>';
+    const select=picker.querySelector("select");select.value=saved;select.addEventListener("change",()=>{localStorage.setItem(key,select.value);document.documentElement.dataset.slPersonalTheme=select.value;});
+    host.prepend(picker);
+    if(onThemePage){const grid=[...document.querySelectorAll("main div.grid")].find((element)=>element.querySelectorAll(":scope > button").length>2);if(grid)grid.style.display="none";}
+  }
+
+  const notificationLifetimeMs = 6 * 60 * 1000;
+  const notificationSeenKey = "santa-luzia:windows-beta:notification-first-seen:v1";
+  function expireTransientNotifications() {
+    const heading = [...document.querySelectorAll("main h1,main h2,main h3")].find((element) => /^(Notificaç(?:ão|ões)|Avisos?)$/i.test(text(element)));
+    const panel = heading?.closest("section,article") || heading?.parentElement;
+    if (!panel) return;
+    let seen = {};
+    try { seen = JSON.parse(localStorage.getItem(notificationSeenKey) || "{}"); } catch { seen = {}; }
+    const candidates = [...panel.querySelectorAll("article,li")].filter((element) => {
+      const content = text(element);
+      return content && content !== text(panel) && !element.querySelector("article,li");
+    });
+    const now = Date.now();
+    candidates.forEach((card, index) => {
+      const content = text(card).slice(0, 500);
+      let hash = 2166136261;
+      for (let i = 0; i < content.length; i += 1) { hash ^= content.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+      const key = `${location.pathname}:${hash >>> 0}:${index}`;
+      const firstSeen = Number(seen[key]) || now;
+      if (!seen[key]) seen[key] = firstSeen;
+      card.classList.add("sl-r7-notification-expiring");
+      if (now - firstSeen >= notificationLifetimeMs) {
+        card.classList.add("sl-r7-notification-expired");
+        setTimeout(() => card.remove(), 280);
+      }
+    });
+    const freshEntries = Object.fromEntries(Object.entries(seen).filter(([, value]) => now - Number(value) < 7 * 24 * 60 * 60 * 1000));
+    try { localStorage.setItem(notificationSeenKey, JSON.stringify(freshEntries)); } catch {}
   }
 
   function coverRouteTransition(anchor) {
@@ -539,7 +602,7 @@
   const observer = new MutationObserver(() => {
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); enhanceAnimatedNavigationIcons(); removeRedundantCopy(); });
+    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); enhanceAnimatedNavigationIcons(); removeRedundantCopy(); enhancePersonalThemePicker(); expireTransientNotifications(); });
   });
   observer.observe(document.documentElement, { childList:true, subtree:true });
   fixPodiumTrophies();
@@ -552,6 +615,9 @@
   enhanceProfileAndSoundControls();
   enhanceAnimatedNavigationIcons();
   removeRedundantCopy();
+  enhancePersonalThemePicker();
+  expireTransientNotifications();
   setInterval(() => { applyFormationPresenceLock(); updatePresenceClock(); }, 1_000);
+  setInterval(expireTransientNotifications, 15_000);
   window.dispatchEvent(new CustomEvent("santa-luzia:windows-beta-runtime", { detail: { revision } }));
 })();
