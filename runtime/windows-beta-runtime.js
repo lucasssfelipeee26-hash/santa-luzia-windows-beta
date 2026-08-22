@@ -1,7 +1,7 @@
 "use strict";
 
 (() => {
-  const revision = "7";
+  const revision = "8";
   if (document.documentElement.dataset.windowsBetaRuntime === revision) return;
   document.documentElement.dataset.windowsBetaRuntime = revision;
 
@@ -20,6 +20,9 @@
     .sl-r6-clock-minute { height:14px; }
     .sl-r6-clock-second { height:15px; width:1px; background:#d49b20; transition:transform 160ms cubic-bezier(.2,.8,.2,1); }
     .sl-r6-clock-center { position:absolute; left:50%; top:50%; width:6px; height:6px; border-radius:50%; background:#8f1934; transform:translate(-50%,-50%); box-shadow:0 0 0 2px #fff3c4; }
+    .sl-r8-native-clock { width:32px; height:32px; flex:0 0 32px; color:#8f1934; overflow:visible; }
+    .sl-r8-native-clock .sl-clock-hour,.sl-r8-native-clock .sl-clock-minute,.sl-r8-native-clock .sl-clock-second { transform-box:view-box; transform-origin:12px 12px; stroke:currentColor; stroke-linecap:round; }
+    .sl-r8-native-clock .sl-clock-second { stroke:#d49b20; }
     .sl-r6-lock-copy strong { display:block; color:#6f1d30; font-size:13px; }
     .sl-r6-lock-copy span { display:block; margin-top:2px; font-size:12px; }
     .sl-b9-private-presence { animation:slR6DailyLoginEnter 440ms cubic-bezier(.2,.78,.2,1) both !important; }
@@ -115,7 +118,7 @@
   }
 
   function clockMarkup() {
-    return '<em class="n12">12</em><em class="n3">3</em><em class="n6">6</em><em class="n9">9</em><i class="sl-r6-clock-hand sl-r6-clock-hour"></i><i class="sl-r6-clock-hand sl-r6-clock-minute"></i><i class="sl-r6-clock-hand sl-r6-clock-second"></i><i class="sl-r6-clock-center"></i>';
+    return '<svg class="sl-r8-native-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><line class="sl-clock-hour" x1="12" y1="12" x2="12" y2="7"></line><line class="sl-clock-minute" x1="12" y1="12" x2="12" y2="5"></line><line class="sl-clock-second" x1="12" y1="12" x2="12" y2="4"></line><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>';
   }
 
   function fixPodiumTrophies() {
@@ -166,6 +169,15 @@
       if (second) second.style.transform = `translateX(-50%) rotate(${seconds * 6}deg)`;
       clock.setAttribute("aria-label", `Horário atual: ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`);
     });
+    root.querySelectorAll(".sl-r8-native-clock").forEach((clock) => {
+      const hour = clock.querySelector(".sl-clock-hour");
+      const minute = clock.querySelector(".sl-clock-minute");
+      const second = clock.querySelector(".sl-clock-second");
+      if (hour) hour.style.transform = `rotate(${hours * 30}deg)`;
+      if (minute) minute.style.transform = `rotate(${minutes * 6}deg)`;
+      if (second) second.style.transform = `rotate(${seconds * 6}deg)`;
+      clock.setAttribute("aria-label", `Horário atual: ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`);
+    });
   }
 
   function scheduledTimeFromArticle(article) {
@@ -211,7 +223,7 @@
       notice = document.createElement("div");
       notice.className = "sl-r4-presence-locked";
       notice.setAttribute("role", "status");
-      notice.innerHTML = `<span class="sl-r6-clock sl-r7-delay-clock" role="img">${clockMarkup()}</span><span class="sl-r6-lock-copy"><strong>Presença bloqueada por enquanto</strong><span></span></span>`;
+      notice.innerHTML = `${clockMarkup()}<span class="sl-r6-lock-copy"><strong>Presença bloqueada por enquanto</strong><span></span></span>`;
       control.before(notice);
     }
     const copy = notice.querySelector(".sl-r6-lock-copy span");
@@ -313,6 +325,7 @@
 
   function enhancePresenceCenter() {
     if (!location.pathname.includes("/area-restrita/moderador/presencas")) return;
+    if (document.querySelector('[data-windows-beta-presence-center="true"]')) return;
     [...document.querySelectorAll("h1,h2")].forEach((heading) => { if (text(heading) === "Controle de Presenças") heading.textContent = "Central de Presenças e Registros"; });
     const selected = [...document.querySelectorAll('[role="tab"][aria-selected="true"]')].find((tab) => /Equipe|Formações|Histórico/.test(text(tab)));
     const panel = document.querySelector('section[role="tabpanel"]');
@@ -365,7 +378,7 @@
           meta.style.setProperty("--sl-liturgical-color", String(liturgy.cor || "#9a731d"));
           meta.innerHTML = "<strong></strong><span></span>";
           meta.querySelector("strong").textContent = liturgy.liturgia || liturgy.tempoLiturgicoAtual || "Celebração litúrgica";
-          meta.querySelector("span").textContent = `${liturgy.tempoLiturgicoAtual || "Tempo litúrgico"} · Ciclo ${liturgy.cicloDominical || "—"} · Cor ${liturgy.cor || "—"}${date.getUTCDay() === 0 && String(scale.data) !== liturgyDate ? " · Liturgia do domingo" : ""}`;
+          meta.querySelector("span").textContent = formatted.charAt(0).toUpperCase() + formatted.slice(1);
           const heading = article.querySelector(":scope > div");
           heading?.after(meta);
         } catch {}
@@ -403,6 +416,7 @@
   }
 
   function organizeFormationManagement() {
+    if (document.querySelector('[data-windows-beta-formation-manager="true"]')) return;
     const title = [...document.querySelectorAll("h3")].find((heading) => text(heading) === "Formações publicadas");
     const list = title?.parentElement?.querySelector(":scope > div.space-y-3");
     if (!title || !list) return;
@@ -443,13 +457,9 @@
       if (!host || target.closest(".sl-r4-presence-locked") || host.closest("[data-sl-delay-clock-host='true']") || host.querySelector(":scope > .sl-r7-delay-clock")) continue;
       host.dataset.slDelayClockHost = "true";
       const source = host.querySelector(":scope > svg");
-      source?.classList.add("sl-r7-delay-source");
-      const clock = document.createElement("span");
-      clock.className = "sl-r6-clock sl-r7-delay-clock";
-      clock.setAttribute("role","img");
-      clock.innerHTML = clockMarkup();
-      source?.after(clock) || host.prepend(clock);
-      updatePresenceClock(clock.parentElement || document);
+      if (!source) continue;
+      source.outerHTML = clockMarkup();
+      updatePresenceClock(host);
     }
   }
 
@@ -522,19 +532,16 @@
   }
 
   function enhancePersonalThemePicker() {
-    const key="santa-luzia:windows-beta:personal-theme:v1";
-    const saved=localStorage.getItem(key)||"vermelho";
-    document.documentElement.dataset.slPersonalTheme=saved;
-    if (document.querySelector(".sl-r7-theme-picker")) return;
-    const onMemberArea=location.pathname.includes("/area-restrita/membro");
-    const onThemePage=location.pathname.includes("/moderador/tema");
-    if (!onMemberArea && !onThemePage) return;
-    const host=document.querySelector("main > div")||document.querySelector("main"); if(!host)return;
-    const picker=document.createElement("section");picker.className="sl-r7-theme-picker";
-    picker.innerHTML='<b>Cores</b><select aria-label="Escolher tema pessoal"><option value="vermelho">Vermelho</option><option value="roxo">Roxo</option><option value="azul">Azul</option><option value="amarelo">Amarelo</option><option value="verde">Verde</option><option value="rosa">Rosa</option><option value="cinza">Cinza</option><option value="gradiente-azul">Degradê azul</option><option value="gradiente-amarelo">Degradê amarelo</option><option value="gradiente-verde">Degradê verde</option></select>';
-    const select=picker.querySelector("select");select.value=saved;select.addEventListener("change",()=>{localStorage.setItem(key,select.value);document.documentElement.dataset.slPersonalTheme=select.value;});
-    host.prepend(picker);
-    if(onThemePage){const grid=[...document.querySelectorAll("main div.grid")].find((element)=>element.querySelectorAll(":scope > button").length>2);if(grid)grid.style.display="none";}
+    try { localStorage.removeItem("santa-luzia:windows-beta:personal-theme:v1"); } catch {}
+    delete document.documentElement.dataset.slPersonalTheme;
+    document.querySelectorAll(".sl-r7-theme-picker").forEach((element) => element.remove());
+    document.querySelectorAll('a[href*="/moderador/tema"],a[href*="/tema"],button').forEach((element) => {
+      if (/Cores|Tema do site|Personalizar cor/i.test(text(element))) element.style.display = "none";
+    });
+    if (location.pathname.includes("/moderador/tema")) {
+      const main = document.querySelector("main");
+      if (main) main.innerHTML = '<section class="rounded-2xl border bg-white p-5"><h1 class="font-serif text-xl text-primary">Cores do aplicativo</h1><p class="mt-2 text-sm text-muted-foreground">O aplicativo usa permanentemente o tema visual padrão da Santa Luzia.</p></section>';
+    }
   }
 
   const notificationLifetimeMs = 6 * 60 * 1000;
@@ -580,9 +587,11 @@
     cover.style.opacity = "1";
     const origin = location.href;
     const startedAt = Date.now();
+    const watchdog = setTimeout(() => cover.isConnected && cover.remove(), 900);
     const timer = setInterval(() => {
-      if (location.href === origin && Date.now() - startedAt < 2200) return;
+      if (location.href === origin && Date.now() - startedAt < 650) return;
       clearInterval(timer);
+      clearTimeout(watchdog);
       setTimeout(() => {
         const main = document.querySelector("main");
         main?.getAnimations?.().filter((animation) => animation.id === "sl-page-enter" || animation.id === "sl-b7-route-enter").forEach((animation) => animation.cancel());
