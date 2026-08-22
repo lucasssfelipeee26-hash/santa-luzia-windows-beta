@@ -1,18 +1,18 @@
 {
-  "publishedAt": "2026-08-22T14:31:10.3779853Z",
-  "versionName": "0.1.0-beta.13",
+  "publishedAt": "2026-08-22T20:21:39.1997064Z",
+  "versionName": "0.1.0-beta.14",
   "repository": "lucasssfelipeee26-hash/santa-luzia-windows-beta",
-  "releaseTag": "windows-beta-v0.1.0-beta.13",
+  "releaseTag": "windows-beta-v0.1.0-beta.14",
   "setup": {
-    "file": "Santa-Luzia-Beta-Setup-0.1.0-beta.13-x64.exe",
-    "size": 151873741,
-    "sha256": "d36e07ee5abfe5ae62ccec57a3920cf7cf936b88c5f487df2fe11b57d4277279",
-    "downloadUrl": "https://github.com/lucasssfelipeee26-hash/santa-luzia-windows-beta/releases/download/windows-beta-v0.1.0-beta.13/Santa-Luzia-Beta-Setup-0.1.0-beta.13-x64.exe"
+    "file": "Santa-Luzia-Beta-Setup-0.1.0-beta.14-x64.exe",
+    "size": 151873850,
+    "sha256": "485ea05cd757af83bb6c2deca8e9b35fdd4218a49b134b1d24c9e8c83ede5b05",
+    "downloadUrl": "https://github.com/lucasssfelipeee26-hash/santa-luzia-windows-beta/releases/download/windows-beta-v0.1.0-beta.14/Santa-Luzia-Beta-Setup-0.1.0-beta.14-x64.exe"
   },
   "portable": {
-    "file": "Santa-Luzia-Beta-Portable-0.1.0-beta.13-x64.exe",
-    "size": 151635910,
-    "sha256": "521688b85bd4d1d470f21dbe03ea197f7afd96a48fd204278baf932d33916aee"
+    "file": "Santa-Luzia-Beta-Portable-0.1.0-beta.14-x64.exe",
+    "size": 151636019,
+    "sha256": "6da6e0301bc305b3902475d5c0279beeca97a3ca67c66de891f62dc1d9cbfa89"
   },
   "androidChannel": "lucasssfelipeee26-hash/comunidade-santa-luzia — 1.0.6/code18"
 }
