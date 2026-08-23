@@ -30,5 +30,13 @@ test("isola a presença semanal pelo usuário autenticado", () => {
 
 test("preserva o snapshot estável do Android", () => {
   assert.equal(config.androidBaseCommit, "e4be377dd6b59505b9fd7e8e9e3fd92caf3c7b77")
-  assert.equal(config.versionName, "0.1.0-beta.15")
+  assert.equal(config.versionName, "0.1.0-beta.16")
+})
+
+test("mantém navegação fluida sem recarga forçada do Quiz", () => {
+  const runtime = fs.readFileSync(path.join(electronDir, "..", "runtime", "windows-beta-runtime.js"), "utf8")
+  assert.match(runtime, /coverRouteTransition/)
+  assert.match(runtime, /contentChanged/)
+  assert.doesNotMatch(runtime, /href\.startsWith\("\/area-restrita\/ranking"\)[\s\S]{0,260}location\.assign/)
+  assert.match(runtime, /data-sl-nav-motion/)
 })

@@ -10,14 +10,19 @@ Canal de testes para Windows, separado do Android estável.
 - A interface da Beta herda o Android sem badge, tema ou layout exclusivos de Windows.
 - As experiências em teste são empacotadas no executável e só entram após uma atualização nativa do Windows.
 
-## Beta atual — 0.1.0-beta.15
+## Beta atual — 0.1.0-beta.16
 
-Esta versão preserva as correções da beta.9 e adiciona um canal remoto exclusivo do Windows:
+Esta versão preserva todas as correções anteriores e conclui os ajustes do vídeo de 20:56:
 
-- consulta `releases/windows-beta-runtime.json` ao abrir, ao recuperar foco e periodicamente;
-- baixa somente `runtime/windows-beta-runtime.js` do repositório oficial;
-- valida repositório, caminho, revisão, tamanho e SHA-256 antes de executar;
-- permite entregar futuros ajustes de interface sem reinstalar o aplicativo;
+- restaura o carregamento completo do Quiz sem recarga forçada;
+- impede que o conteúdo de uma aba apareça durante a transição para outra;
+- anima os ícones originais, sem trocar seus desenhos;
+- permite editar toda a escala publicada e escolher uma única celebração do iLiturgia;
+- permite à pessoa escalada justificar sua falta na missa e registra isso no histórico correto;
+- bloqueia definitivamente a escolha pessoal da formação após o primeiro registro;
+- libera `Presente` somente no horário do Windows e mantém `Falta justificada` disponível desde a publicação;
+- evita os zeros temporários no painel enquanto os dados reais ainda estão chegando;
+- consulta `releases/windows-beta-runtime.json`, valida tamanho e SHA-256 e aplica ajustes remotos sem reinstalação;
 - mantém `electron-updater`, `beta.yml` e o manifesto oficial como fallback independente;
 - mantém o Android estável 1.0.6/code18 congelado no mesmo commit.
 
@@ -30,7 +35,7 @@ Melhorias acumuladas do canal Beta:
 - mantém **Atrasos**, **Escalas**, **Formação**, **Presenças**, **Registro** e **Cores** em grade 3 × 2;
 - mantém o **Quiz** da barra inferior;
 - o menu do membro não é alterado;
-- o patch da experiência está dentro do EXE, não no servidor.
+- os ajustes da experiência são exclusivos do canal Windows e não alteram a interface Android estável.
 
 ## Versionamento
 

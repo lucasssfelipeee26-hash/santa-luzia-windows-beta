@@ -1,7 +1,7 @@
 "use strict";
 
 (() => {
-  const revision = "10";
+  const revision = "11";
   if (document.documentElement.dataset.windowsBetaRuntime === revision) return;
   document.documentElement.dataset.windowsBetaRuntime = revision;
 
@@ -11,7 +11,9 @@
     .sl-b7-trophy, .sl-trophy-3d, .sl-r3-card-trophy { display:none !important; }
     .sl-r6-podium-header > svg, .sl-r6-podium-header > .sl-b7-trophy, .sl-r6-podium-header [data-lucide="trophy"] { display:none !important; }
     .sl-b7-route-shield { display:none !important; }
-    .sl-runtime-route-cover { position:fixed; inset:0; z-index:244; pointer-events:none; background:#fffaf0; opacity:0; }
+    .sl-runtime-route-cover { position:fixed; inset:0; z-index:244; pointer-events:none; display:grid; place-items:center; background:#fffaf0; opacity:0; }
+    .sl-runtime-route-cover::after { content:""; width:24px; height:24px; border:3px solid rgba(143,25,52,.18); border-top-color:#8f1934; border-radius:50%; animation:slR11RouteSpin .7s linear infinite; }
+    @keyframes slR11RouteSpin{to{transform:rotate(360deg)}}
     .sl-r4-presence-locked { margin-top:16px; display:flex; align-items:center; gap:12px; border:1px solid #e2c86f; border-radius:18px; background:linear-gradient(145deg,#fffaf0,#fff3cf); padding:12px 14px; color:#6f541a; font-size:14px; line-height:1.45; box-shadow:0 8px 22px rgba(125,91,21,.08); }
     .sl-r6-clock { position:relative; width:42px; height:42px; flex:0 0 42px; border:3px solid #8f1934; border-radius:50%; background:radial-gradient(circle at 50% 50%,#fff 0 55%,#fff6dc 56% 100%); box-shadow:inset 0 0 0 2px rgba(212,175,55,.34),0 5px 12px rgba(92,45,25,.15); }
     .sl-r6-clock::before { content:""; position:absolute; inset:3px; border-radius:50%; background:repeating-conic-gradient(from -1deg,#8f1934 0 2deg,transparent 2deg 30deg); mask:radial-gradient(circle,transparent 0 72%,#000 73%); opacity:.62; }
@@ -79,6 +81,18 @@
     @keyframes slR7OriginalPageMotion{0%,100%{transform:perspective(60px) rotateY(0)}50%{transform:perspective(60px) rotateY(-10deg)}}
     @keyframes slR7OriginalPanelMotion{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.03)}}
     @keyframes slR10ScaleMotion{0%,100%{transform:translateY(0) rotate(0)}45%{transform:translateY(-1px) rotate(-3deg)}65%{transform:translateY(-1px) rotate(2deg)}}
+    [data-sl-nav-motion] svg { transform-box:fill-box; transform-origin:center; will-change:transform; }
+    [data-sl-nav-motion="library"] svg { animation:slR11Library 2.3s ease-in-out infinite; }
+    [data-sl-nav-motion="liturgy"] svg,[data-sl-nav-motion="formation"] svg { animation:slR11Page 2.5s ease-in-out infinite; }
+    [data-sl-nav-motion="panel"] svg { animation:slR11Panel 2.2s ease-in-out infinite; }
+    [data-sl-nav-motion="scale"] svg { animation:slR10ScaleMotion 2.1s ease-in-out infinite; }
+    [data-sl-nav-motion="quiz"] svg { animation:slR11Quiz 2s ease-in-out infinite; }
+    [data-sl-nav-motion="clock"] svg { animation:slR11Clock 8s steps(12,end) infinite; }
+    @keyframes slR11Library{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(-4deg)}}
+    @keyframes slR11Page{0%,100%{transform:rotateY(0) translateY(0)}50%{transform:rotateY(-18deg) translateY(-1px)}}
+    @keyframes slR11Panel{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.08)}}
+    @keyframes slR11Quiz{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.1) rotate(4deg)}}
+    @keyframes slR11Clock{to{transform:rotate(360deg)}}
     .sl-r10-profile-source { display:none !important; }
     .sl-r10-profile-icon { position:relative; width:25px; height:25px; flex:0 0 25px; border-radius:50%; background:linear-gradient(145deg,#fff2d6,#f2c899); box-shadow:inset -2px -2px 0 rgba(91,45,34,.12); animation:slR7OriginalPanelMotion 2.6s ease-in-out infinite; }
     .sl-r10-profile-icon::before { content:""; position:absolute; left:8px; top:4px; width:9px; height:9px; border-radius:50%; background:#8f1934; }
@@ -96,7 +110,7 @@
     .sl-r7-panel-icon i { position:absolute; top:12px; width:3px; height:13px; border-radius:3px; background:#d9a17c; transform-origin:50% 90%; animation:slR7PrayArms 2.4s ease-in-out infinite; z-index:2; }
     .sl-r7-panel-icon i:first-child{left:7px;transform:rotate(40deg)}.sl-r7-panel-icon i:last-child{right:7px;transform:rotate(-40deg);animation-delay:-1.2s}
     @keyframes slR7PrayArms{0%,100%{translate:0 0}50%{translate:0 -3px}}
-    @media(prefers-reduced-motion:reduce){.sl-r7-books-icon i,.sl-r7-liturgy-icon::after,.sl-r7-panel-icon i,.sl-r7-animated-nav-source{animation:none!important}}
+    @media(prefers-reduced-motion:reduce){.sl-r7-books-icon i,.sl-r7-liturgy-icon::after,.sl-r7-panel-icon i,.sl-r7-animated-nav-source,[data-sl-nav-motion] svg{animation:none!important}}
     .sl-r7-copy-removed { display:none !important; }
     .sl-b9-private-presence-head small { display:none !important; }
     .sl-r7-theme-picker { display:flex; align-items:center; gap:10px; margin:0 0 14px; border:1px solid #e1d7d1; border-radius:16px; background:#fff; padding:10px 12px; box-shadow:0 6px 18px rgba(61,32,28,.06); }
@@ -620,33 +634,32 @@
     document.body.appendChild(cover);
     cover.style.opacity = "1";
     const origin = location.href;
+    const initialMain = document.querySelector("main");
+    const initialContent = text(initialMain).slice(0, 400);
     const startedAt = Date.now();
-    const watchdog = setTimeout(() => cover.isConnected && cover.remove(), 900);
+    const finish = () => {
+      if (!cover.isConnected) return;
+      const main = document.querySelector("main");
+      main?.getAnimations?.().filter((animation) => animation.id === "sl-page-enter" || animation.id === "sl-b7-route-enter").forEach((animation) => animation.cancel());
+      main?.animate?.([{ opacity:.88, transform:"translate3d(0,3px,0)" },{ opacity:1, transform:"none" }], { duration:190, easing:"cubic-bezier(.2,.72,.2,1)" });
+      const animation = cover.animate([{ opacity:1 },{ opacity:0 }], { duration:170, fill:"forwards", easing:"ease-out" });
+      animation.finished.finally(() => cover.remove());
+    };
+    const watchdog = setTimeout(finish, 3_000);
     const timer = setInterval(() => {
-      if (location.href === origin && Date.now() - startedAt < 650) return;
+      const currentMain = document.querySelector("main");
+      const routeChanged = location.href !== origin;
+      const contentChanged = currentMain !== initialMain || text(currentMain).slice(0, 400) !== initialContent;
+      if ((!routeChanged || !contentChanged) && Date.now() - startedAt < 2_800) return;
       clearInterval(timer);
       clearTimeout(watchdog);
-      setTimeout(() => {
-        const main = document.querySelector("main");
-        main?.getAnimations?.().filter((animation) => animation.id === "sl-page-enter" || animation.id === "sl-b7-route-enter").forEach((animation) => animation.cancel());
-        main?.animate?.([{ opacity:.82, transform:"translate3d(0,3px,0)" },{ opacity:1, transform:"none" }], { duration:170, easing:"cubic-bezier(.2,.72,.2,1)" });
-        const animation = cover.animate([{ opacity:1 },{ opacity:0 }], { duration:140, fill:"forwards", easing:"ease-out" });
-        animation.finished.finally(() => cover.remove());
-      }, 90);
+      setTimeout(finish, 70);
     }, 40);
   }
 
   document.addEventListener("click", (event) => {
     const anchor = event.target instanceof Element ? event.target.closest(".mobile-app-bottom-nav a[href]") : null;
     if (!anchor) return;
-    const href = anchor.getAttribute("href") || "";
-    if (href.startsWith("/area-restrita/ranking")) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      coverRouteTransition(anchor);
-      location.assign(new URL(href, location.origin).href);
-      return;
-    }
     coverRouteTransition(anchor);
   }, true);
 

@@ -103,7 +103,7 @@ jobs:
           }
           if (-not (Test-Path runtime/windows-beta-runtime.js)) { throw "Runtime consolidado não foi empacotado." }
           $runtime = Get-Content runtime/windows-beta-runtime.js -Raw
-          foreach ($marker in @("enhancePresenceCenter", "ensureEarlyJustification", "organizePublishedScale", "enrichPublishedScaleLiturgy", "organizeFormationManagement", "enhanceDelayClocks", "enhanceProfileAndSoundControls", "enhanceAnimatedNavigationIcons", "enhanceProfileIconAndInstalledState", "removeRedundantCopy", "enhancePersonalThemePicker", "expireTransientNotifications")) {
+          foreach ($marker in @("enhancePresenceCenter", "ensureEarlyJustification", "organizePublishedScale", "enrichPublishedScaleLiturgy", "organizeFormationManagement", "enhanceDelayClocks", "enhanceProfileAndSoundControls", "enhanceAnimatedNavigationIcons", "enhanceProfileIconAndInstalledState", "removeRedundantCopy", "enhancePersonalThemePicker", "expireTransientNotifications", "coverRouteTransition", "data-sl-nav-motion", "contentChanged")) {
             if (-not $runtime.Contains($marker)) { throw "Recurso solicitado ausente do runtime Windows: $marker" }
           }
           $whatajong = Get-Content app/api/jogo/whatajong/resultado/route.ts -Raw
@@ -259,9 +259,12 @@ jobs:
           $notes = @"
           Santa Luzia Beta para Windows — $env:WINDOWS_BETA_VERSION
 
-          Mantém todas as correções da Beta anterior e inaugura o canal remoto exclusivo do Windows.
+          Mantém todas as correções anteriores e conclui os ajustes solicitados no vídeo:
+          Quiz restaurado, transições sem mistura de telas, animação dos ícones originais,
+          edição completa da escala, escolha litúrgica, justificativa de ausência na missa,
+          participação da formação bloqueada após o primeiro registro e painel sem zeros temporários.
 
-          Depois desta instalação, ajustes de interface da Beta podem chegar diretamente pelo servidor,
+          Ajustes de interface da Beta também podem chegar diretamente pelo servidor,
           sem reinstalação. O Electron consulta um manifesto exclusivo, valida tamanho e SHA-256 do script
           e só então aplica a revisão. O Android e o servidor compartilhado permanecem intactos.
           O auto-update nativo duplo da Beta 8 também é mantido para mudanças do executável.
