@@ -48,3 +48,11 @@ test("mantém o Quiz na sessão ativa e limita a transição visual", () => {
   assert.match(runtime, /slR13Presence/)
   assert.match(runtime, /slR13Record/)
 })
+
+test("não oculta os contêineres completos do Quiz ao remover textos redundantes", () => {
+  const runtime = fs.readFileSync(path.join(electronDir, "..", "runtime", "windows-beta-runtime.js"), "utf8")
+  assert.match(runtime, /querySelectorAll\("\.sl-r7-copy-removed"\)/)
+  assert.match(runtime, /querySelectorAll\("p,small"\)/)
+  assert.doesNotMatch(runtime, /querySelectorAll\("p,small,span,div"\)/)
+  assert.doesNotMatch(runtime, /element\.closest\("\.flex[^\n]+sl-r7-copy-removed/)
+})

@@ -1,7 +1,7 @@
 "use strict";
 
 (() => {
-  const revision = "13";
+  const revision = "14";
   if (document.documentElement.dataset.windowsBetaRuntime === revision) return;
   document.documentElement.dataset.windowsBetaRuntime = revision;
 
@@ -588,12 +588,14 @@
       /o mesmo jogo apresentado como base/i,
       /registros administrativos são privados/i,
     ];
-    document.querySelectorAll("p,small,span,div").forEach((element) => {
+    // A revisão 13 permitia que um contêiner curto herdasse o texto de todos os
+    // filhos e recebesse display:none. Na Jornada Litúrgica isso escondia a tela
+    // inteira, embora Quiz, Jogos e Ranking já estivessem montados no DOM.
+    document.querySelectorAll(".sl-r7-copy-removed").forEach((element) => element.classList.remove("sl-r7-copy-removed"));
+    document.querySelectorAll("p,small").forEach((element) => {
       const content = text(element);
       if (!content || content.length > 360 || !patterns.some((pattern) => pattern.test(content))) return;
-      if (/registros administrativos são privados/i.test(content)) element.closest(".flex")?.classList.add("sl-r7-copy-removed");
-      else if (/escala atualizada e salva/i.test(content)) element.closest(".flex.items-center")?.classList.add("sl-r7-copy-removed");
-      else element.classList.add("sl-r7-copy-removed");
+      element.classList.add("sl-r7-copy-removed");
     });
   }
 
