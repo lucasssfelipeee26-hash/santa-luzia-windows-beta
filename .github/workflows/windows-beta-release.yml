@@ -198,7 +198,14 @@ jobs:
         run: |
           $setup = Get-Item $env:WINDOWS_BETA_SETUP
           Write-Host "Executando Setup real: $($setup.Name) ($($setup.Length) bytes)"
-          $process = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -PassThru -Wait
+          $process = $null
+          for ($attempt = 1; $attempt -le 2; $attempt++) {
+            $process = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -PassThru -Wait
+            if ($process.ExitCode -eq 0) { break }
+            if ($process.ExitCode -ne -1073741819 -or $attempt -eq 2) { break }
+            Write-Warning "O Windows encerrou o Setup com uma falha nativa transitória. Repetindo a instalação real uma única vez."
+            Start-Sleep -Seconds 5
+          }
           if ($process.ExitCode -ne 0) {
             Write-Output "::error title=Setup retornou erro::O instalador real terminou com o código $($process.ExitCode)."
             "### Falha no Setup`nO instalador terminou com código $($process.ExitCode)." | Out-File $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
