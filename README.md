@@ -10,11 +10,13 @@ Canal de testes para Windows, separado do Android estável.
 - A interface da Beta herda o Android sem badge, tema ou layout exclusivos de Windows.
 - As experiências em teste são empacotadas no executável e só entram após uma atualização nativa do Windows.
 
-## Beta atual — 0.1.0-beta.18
+## Beta atual — 0.1.0-beta.19
 
-Esta versão preserva todas as correções anteriores e conclui os ajustes do vídeo de 06:10:
+Esta versão preserva todas as correções anteriores e corrige a falha grave da Jornada Litúrgica:
 
-- mantém o Quiz dentro da sessão ativa, sem tela vazia nem retorno para a área pública;
+- impede que a limpeza de textos redundantes esconda os contêineres completos da tela;
+- mantém Quiz, Jogos, Ranking e Avulsos visíveis e funcionais dentro da sessão ativa;
+- valida no Electron real os dados do ranking, a geração das cinco perguntas litúrgicas e a troca entre todas as abas;
 - reduz a transição a um véu curto e não bloqueante, sem misturar telas;
 - remove da Beta o banner repetitivo de atraso confirmado;
 - consolida o relatório em um único cartão por pessoa, com todos os totais e detalhes;
