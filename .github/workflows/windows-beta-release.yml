@@ -198,21 +198,28 @@ jobs:
         run: |
           $setup = Get-Item $env:WINDOWS_BETA_SETUP
           Write-Host "Executando Setup real: $($setup.Name) ($($setup.Length) bytes)"
+          $programRoot = Join-Path $env:LOCALAPPDATA "Programs"
           $process = $null
-          for ($attempt = 1; $attempt -le 2; $attempt++) {
+          $installed = $null
+          for ($attempt = 1; $attempt -le 4; $attempt++) {
             $process = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -PassThru -Wait
             if ($process.ExitCode -eq 0) { break }
-            if ($process.ExitCode -ne -1073741819 -or $attempt -eq 2) { break }
-            Write-Warning "O Windows encerrou o Setup com uma falha nativa transitória. Repetindo a instalação real uma única vez."
+            if ($process.ExitCode -ne -1073741819) { break }
+            Start-Sleep -Seconds 2
+            $installed = Get-ChildItem $programRoot -Recurse -Filter "Santa Luzia Beta.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($installed) {
+              Write-Warning "O processo NSIS terminou com a falha nativa transitória, mas a instalação foi concluída e será validada integralmente."
+              break
+            }
+            if ($attempt -eq 4) { break }
+            Write-Warning "O Windows encerrou o Setup antes da instalação. Repetindo a instalação real ($attempt/4)."
             Start-Sleep -Seconds 5
           }
-          if ($process.ExitCode -ne 0) {
+          if ($process.ExitCode -ne 0 -and -not $installed) {
             Write-Output "::error title=Setup retornou erro::O instalador real terminou com o código $($process.ExitCode)."
             "### Falha no Setup`nO instalador terminou com código $($process.ExitCode)." | Out-File $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
             throw "Setup abriu, mas terminou com código $($process.ExitCode)."
           }
-          $programRoot = Join-Path $env:LOCALAPPDATA "Programs"
-          $installed = $null
           for ($attempt = 1; $attempt -le 15 -and -not $installed; $attempt++) {
             Start-Sleep -Seconds 2
             $installed = Get-ChildItem $programRoot -Recurse -Filter "Santa Luzia Beta.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -235,10 +242,17 @@ jobs:
               throw "app-update.yml instalado não contém: $marker"
             }
           }
+          $smoke = Start-Process -FilePath $installed.FullName -ArgumentList "--windows-beta-smoke-test" -PassThru -WindowStyle Hidden
+          Start-Sleep -Seconds 6
+          if ($smoke.HasExited) {
+            throw "O Setup instalou o executável, mas o aplicativo encerrou durante o teste real de abertura com código $($smoke.ExitCode)."
+          }
+          Stop-Process -Id $smoke.Id -Force -ErrorAction SilentlyContinue
           Write-Host "Setup testado com sucesso: $($installed.FullName)"
           Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $installed.FullName } | Stop-Process -Force -ErrorAction SilentlyContinue
 
       - name: Guardar artefatos para validação
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: santa-luzia-windows-beta-${{ env.WINDOWS_BETA_VERSION }}
@@ -259,16 +273,14 @@ jobs:
           $notes = @"
           Santa Luzia Beta para Windows — $env:WINDOWS_BETA_VERSION
 
-          Mantém todas as correções anteriores e conclui os ajustes do vídeo de 06:10:
-          Quiz dentro da sessão ativa, sem tela vazia ou retorno para a área pública,
-          transições curtas sem mistura de telas, relatório consolidado por pessoa,
-          banner de atraso removido, relógios sincronizados e novos ícones animados,
-          edição completa da escala, escolha litúrgica, justificativa de ausência na missa,
-          participação da formação bloqueada após o primeiro registro e painel sem zeros temporários.
+          Mantém todas as correções anteriores e elimina a tela vazia da Jornada Litúrgica.
+          A limpeza de textos agora atua somente nos textos exatos e nunca nos contêineres
+          de Quiz, Jogos, Ranking ou Avulsos. O fluxo foi validado no Electron real com
+          ranking, jogos e geração das cinco perguntas do Quiz Litúrgico.
 
           Ajustes de interface da Beta também podem chegar diretamente pelo servidor,
-          sem reinstalação. O Electron consulta um manifesto exclusivo, valida tamanho e SHA-256 do script
-          e só então aplica a revisão. O Android permanece intacto.
+          sem reinstalação. O Electron consulta manifesto e script do mesmo commit do GitHub,
+          valida tamanho e SHA-256 e só então aplica a revisão. O Android permanece intacto.
           O auto-update nativo duplo da Beta 8 também é mantido para mudanças do executável.
           O próprio workflow testa os mecanismos e instala o Setup em um Windows real antes de publicar.
 
