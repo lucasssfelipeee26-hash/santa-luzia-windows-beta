@@ -46,6 +46,29 @@ function expectedScriptUrl(repository, scriptPath, revision) {
   return `https://raw.githubusercontent.com/${repository}/main/${scriptPath}?v=${encodeURIComponent(revision)}`
 }
 
+function githubRefUrl(repository) {
+  return `https://api.github.com/repos/${repository}/git/ref/heads/main`
+}
+
+function githubContentUrl(repository, filePath, commit) {
+  return `https://api.github.com/repos/${repository}/contents/${filePath}?ref=${encodeURIComponent(commit)}`
+}
+
+async function readJson(url, limit, label) {
+  const response = await request(url)
+  const bytes = await readLimited(response, limit, label)
+  return JSON.parse(bytes.toString("utf8"))
+}
+
+function decodeGithubContent(payload, limit, label) {
+  if (!payload || payload.type !== "file" || payload.encoding !== "base64" || typeof payload.content !== "string") {
+    throw new Error(`${label} não foi entregue como arquivo íntegro pelo GitHub.`)
+  }
+  const bytes = Buffer.from(payload.content.replace(/\s+/g, ""), "base64")
+  if (bytes.length < 1 || bytes.length > limit) throw new Error(`${label} excede o limite permitido.`)
+  return bytes
+}
+
 function validateManifest(manifest, repository) {
   if (!manifest || manifest.repository !== repository) throw new Error("Manifesto remoto pertence a outro repositório.")
   if (!Number.isSafeInteger(manifest.revision) || manifest.revision < 1) throw new Error("Revisão remota inválida.")
@@ -56,9 +79,20 @@ function validateManifest(manifest, repository) {
 }
 
 async function fetchRuntimeManifest(repository) {
-  const response = await request(manifestUrl(repository))
-  const bytes = await readLimited(response, MAX_MANIFEST_BYTES, "Manifesto remoto")
-  return validateManifest(JSON.parse(bytes.toString("utf8")), repository)
+  try {
+    const ref = await readJson(githubRefUrl(repository), MAX_MANIFEST_BYTES, "Referência remota")
+    const commit = String(ref?.object?.sha || "")
+    if (!/^[a-f0-9]{40}$/i.test(commit)) throw new Error("Commit remoto inválido.")
+    const payload = await readJson(githubContentUrl(repository, "releases/windows-beta-runtime.json", commit), MAX_MANIFEST_BYTES, "Manifesto remoto")
+    const bytes = decodeGithubContent(payload, MAX_MANIFEST_BYTES, "Manifesto remoto")
+    const manifest = validateManifest(JSON.parse(bytes.toString("utf8")), repository)
+    Object.defineProperty(manifest, "sourceCommit", { value: commit, enumerable: false })
+    return manifest
+  } catch {
+    const response = await request(manifestUrl(repository))
+    const bytes = await readLimited(response, MAX_MANIFEST_BYTES, "Manifesto remoto")
+    return validateManifest(JSON.parse(bytes.toString("utf8")), repository)
+  }
 }
 
 function validateScript(bytes, manifest) {
@@ -71,15 +105,22 @@ function validateScript(bytes, manifest) {
 
 async function fetchValidatedRuntime(repository, manifest) {
   validateManifest(manifest, repository)
+  if (/^[a-f0-9]{40}$/i.test(String(manifest.sourceCommit || ""))) {
+    const payload = await readJson(githubContentUrl(repository, manifest.script.path, manifest.sourceCommit), MAX_SCRIPT_BYTES, "Script remoto")
+    return validateScript(decodeGithubContent(payload, MAX_SCRIPT_BYTES, "Script remoto"), manifest)
+  }
   const response = await request(expectedScriptUrl(repository, manifest.script.path, manifest.revision))
   const bytes = await readLimited(response, MAX_SCRIPT_BYTES, "Script remoto")
   return validateScript(bytes, manifest)
 }
 
 module.exports = {
+  decodeGithubContent,
   expectedScriptUrl,
   fetchRuntimeManifest,
   fetchValidatedRuntime,
+  githubContentUrl,
+  githubRefUrl,
   manifestUrl,
   validateManifest,
   validateScript,

@@ -30,4 +30,13 @@ test("valida tamanho e SHA-256 antes de executar", () => {
 test("usa URLs HTTPS fixas do repositório", () => {
   assert.match(runtime.manifestUrl(repository, 123), /^https:\/\/raw\.githubusercontent\.com\//)
   assert.equal(runtime.expectedScriptUrl(repository, manifest.script.path, 1), `https://raw.githubusercontent.com/${repository}/main/runtime/windows-beta-runtime.js?v=1`)
+  assert.equal(runtime.githubRefUrl(repository), `https://api.github.com/repos/${repository}/git/ref/heads/main`)
+  assert.equal(runtime.githubContentUrl(repository, manifest.script.path, "a".repeat(40)), `https://api.github.com/repos/${repository}/contents/runtime/windows-beta-runtime.js?ref=${"a".repeat(40)}`)
+})
+
+test("decodifica manifesto e runtime do mesmo commit do GitHub", () => {
+  const payload = { type: "file", encoding: "base64", content: script.toString("base64") }
+  assert.deepEqual(runtime.decodeGithubContent(payload, 1024, "Script remoto"), script)
+  assert.throws(() => runtime.decodeGithubContent({ ...payload, encoding: "utf8" }, 1024, "Script remoto"), /arquivo íntegro/)
+  assert.throws(() => runtime.decodeGithubContent(payload, 4, "Script remoto"), /limite/)
 })

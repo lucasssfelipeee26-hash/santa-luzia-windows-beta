@@ -29,6 +29,7 @@ Esta versão preserva todas as correções anteriores e corrige a falha grave da
 - libera `Presente` somente no horário do Windows e mantém `Falta justificada` disponível desde a publicação;
 - evita os zeros temporários no painel enquanto os dados reais ainda estão chegando;
 - consulta `releases/windows-beta-runtime.json`, valida tamanho e SHA-256 e aplica ajustes remotos sem reinstalação;
+- lê manifesto e script remoto do mesmo commit do GitHub para impedir combinações parciais durante a propagação;
 - mantém `electron-updater`, `beta.yml` e o manifesto oficial como fallback independente;
 - mantém o Android estável 1.0.6/code18 congelado no mesmo commit.
 
