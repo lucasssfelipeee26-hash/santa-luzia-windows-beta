@@ -1,10 +1,10 @@
 {
   "repository": "lucasssfelipeee26-hash/santa-luzia-windows-beta",
-  "revision": 11,
-  "publishedAt": "2026-08-23T01:35:34.063Z",
+  "revision": 12,
+  "publishedAt": "2026-08-23T02:04:35.477Z",
   "script": {
     "path": "runtime/windows-beta-runtime.js",
-    "size": 53502,
-    "sha256": "e9b0da89788b266f8eb20450b0ceb6377ac4f55e3d65a22f95e8655d06024623"
+    "size": 54437,
+    "sha256": "ca5560f5e52895e00aff12a5822f35c10442b449b85d03e26d68eebcbb9f5f97"
   }
 }

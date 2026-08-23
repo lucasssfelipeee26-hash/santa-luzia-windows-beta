@@ -1,7 +1,7 @@
 "use strict";
 
 (() => {
-  const revision = "11";
+  const revision = "12";
   if (document.documentElement.dataset.windowsBetaRuntime === revision) return;
   document.documentElement.dataset.windowsBetaRuntime = revision;
 
@@ -14,6 +14,7 @@
     .sl-runtime-route-cover { position:fixed; inset:0; z-index:244; pointer-events:none; display:grid; place-items:center; background:#fffaf0; opacity:0; }
     .sl-runtime-route-cover::after { content:""; width:24px; height:24px; border:3px solid rgba(143,25,52,.18); border-top-color:#8f1934; border-radius:50%; animation:slR11RouteSpin .7s linear infinite; }
     @keyframes slR11RouteSpin{to{transform:rotate(360deg)}}
+    main.sl-r12-quiz-visible { display:block !important; visibility:visible !important; opacity:1 !important; filter:none !important; }
     .sl-r4-presence-locked { margin-top:16px; display:flex; align-items:center; gap:12px; border:1px solid #e2c86f; border-radius:18px; background:linear-gradient(145deg,#fffaf0,#fff3cf); padding:12px 14px; color:#6f541a; font-size:14px; line-height:1.45; box-shadow:0 8px 22px rgba(125,91,21,.08); }
     .sl-r6-clock { position:relative; width:42px; height:42px; flex:0 0 42px; border:3px solid #8f1934; border-radius:50%; background:radial-gradient(circle at 50% 50%,#fff 0 55%,#fff6dc 56% 100%); box-shadow:inset 0 0 0 2px rgba(212,175,55,.34),0 5px 12px rgba(92,45,25,.15); }
     .sl-r6-clock::before { content:""; position:absolute; inset:3px; border-radius:50%; background:repeating-conic-gradient(from -1deg,#8f1934 0 2deg,transparent 2deg 30deg); mask:radial-gradient(circle,transparent 0 72%,#000 73%); opacity:.62; }
@@ -657,9 +658,22 @@
     }, 40);
   }
 
+  function ensureQuizVisible() {
+    if (!location.pathname.includes("/area-restrita/ranking")) return;
+    document.querySelectorAll(".sl-runtime-route-cover,.sl-b7-route-shield").forEach((element) => element.remove());
+    const main = document.querySelector("main");
+    if (!main) return;
+    main.classList.add("sl-r12-quiz-visible");
+    main.getAnimations?.().filter((animation) => /(?:page|route|shield)/i.test(animation.id || "")).forEach((animation) => animation.cancel());
+  }
+
   document.addEventListener("click", (event) => {
     const anchor = event.target instanceof Element ? event.target.closest(".mobile-app-bottom-nav a[href]") : null;
     if (!anchor) return;
+    if (/\/area-restrita\/ranking(?:[?#]|$)/.test(anchor.getAttribute("href") || "")) {
+      document.querySelectorAll(".sl-runtime-route-cover,.sl-b7-route-shield").forEach((element) => element.remove());
+      return;
+    }
     coverRouteTransition(anchor);
   }, true);
 
@@ -667,7 +681,7 @@
   const observer = new MutationObserver(() => {
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); enhanceAnimatedNavigationIcons(); enhanceProfileIconAndInstalledState(); removeRedundantCopy(); enhancePersonalThemePicker(); expireTransientNotifications(); });
+    requestAnimationFrame(() => { scheduled = false; ensureQuizVisible(); fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); enhanceAnimatedNavigationIcons(); enhanceProfileIconAndInstalledState(); removeRedundantCopy(); enhancePersonalThemePicker(); expireTransientNotifications(); });
   });
   observer.observe(document.documentElement, { childList:true, subtree:true });
   fixPodiumTrophies();
@@ -683,7 +697,9 @@
   removeRedundantCopy();
   enhancePersonalThemePicker();
   expireTransientNotifications();
+  ensureQuizVisible();
   setInterval(() => { applyFormationPresenceLock(); updatePresenceClock(); }, 1_000);
+  setInterval(ensureQuizVisible, 500);
   setInterval(expireTransientNotifications, 15_000);
   window.dispatchEvent(new CustomEvent("santa-luzia:windows-beta-runtime", { detail: { revision } }));
 })();

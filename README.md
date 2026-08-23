@@ -10,11 +10,13 @@ Canal de testes para Windows, separado do Android estável.
 - A interface da Beta herda o Android sem badge, tema ou layout exclusivos de Windows.
 - As experiências em teste são empacotadas no executável e só entram após uma atualização nativa do Windows.
 
-## Beta atual — 0.1.0-beta.16
+## Beta atual — 0.1.0-beta.17
 
-Esta versão preserva todas as correções anteriores e conclui os ajustes do vídeo de 20:56:
+Esta versão preserva todas as correções anteriores e corrige definitivamente a abertura do Quiz no Electron:
 
-- restaura o carregamento completo do Quiz sem recarga forçada;
+- abre o Quiz como documento completo no Windows, preservando a sessão;
+- remove o redirecionamento nativo concorrente que interrompia a tela;
+- cancela qualquer camada ou animação antiga capaz de ocultar o conteúdo do Quiz;
 - impede que o conteúdo de uma aba apareça durante a transição para outra;
 - anima os ícones originais, sem trocar seus desenhos;
 - permite editar toda a escala publicada e escolher uma única celebração do iLiturgia;

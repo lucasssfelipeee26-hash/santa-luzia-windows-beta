@@ -6,6 +6,7 @@ const test = require("node:test")
 const electronDir = __dirname
 const polish = fs.readFileSync(path.join(electronDir, "beta7-polish.js"), "utf8")
 const preload = fs.readFileSync(path.join(electronDir, "preload-v5.cjs"), "utf8")
+const behavior = fs.readFileSync(path.join(electronDir, "behavior-fixes.js"), "utf8")
 const config = JSON.parse(fs.readFileSync(path.join(electronDir, "..", "config", "windows-beta.json"), "utf8"))
 
 test("mantém a barra inferior com a geometria original do Android", () => {
@@ -30,7 +31,7 @@ test("isola a presença semanal pelo usuário autenticado", () => {
 
 test("preserva o snapshot estável do Android", () => {
   assert.equal(config.androidBaseCommit, "e4be377dd6b59505b9fd7e8e9e3fd92caf3c7b77")
-  assert.equal(config.versionName, "0.1.0-beta.16")
+  assert.equal(config.versionName, "0.1.0-beta.17")
 })
 
 test("mantém navegação fluida sem recarga forçada do Quiz", () => {
@@ -38,5 +39,7 @@ test("mantém navegação fluida sem recarga forçada do Quiz", () => {
   assert.match(runtime, /coverRouteTransition/)
   assert.match(runtime, /contentChanged/)
   assert.doesNotMatch(runtime, /href\.startsWith\("\/area-restrita\/ranking"\)[\s\S]{0,260}location\.assign/)
+  assert.doesNotMatch(behavior, /location\.assign/)
   assert.match(runtime, /data-sl-nav-motion/)
+  assert.match(runtime, /ensureQuizVisible/)
 })

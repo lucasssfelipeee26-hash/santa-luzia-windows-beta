@@ -226,12 +226,9 @@
       let destination;
       try { destination = new URL(rawHref, location.href); } catch { return; }
       if (destination.origin !== location.origin) return;
-      const from = location.href;
-      const expected = destination.href;
       target.classList.add("sl-b4-nav-pending");
       window.setTimeout(() => {
         target.classList.remove("sl-b4-nav-pending");
-        if (location.href === from && expected !== from) location.assign(expected);
       }, NAV_TIMEOUT);
     }, true);
   }
