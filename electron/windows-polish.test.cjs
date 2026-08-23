@@ -31,15 +31,20 @@ test("isola a presença semanal pelo usuário autenticado", () => {
 
 test("preserva o snapshot estável do Android", () => {
   assert.equal(config.androidBaseCommit, "e4be377dd6b59505b9fd7e8e9e3fd92caf3c7b77")
-  assert.equal(config.versionName, "0.1.0-beta.17")
+  assert.equal(config.versionName, "0.1.0-beta.18")
 })
 
-test("mantém navegação fluida sem recarga forçada do Quiz", () => {
+test("mantém o Quiz na sessão ativa e limita a transição visual", () => {
   const runtime = fs.readFileSync(path.join(electronDir, "..", "runtime", "windows-beta-runtime.js"), "utf8")
   assert.match(runtime, /coverRouteTransition/)
-  assert.match(runtime, /contentChanged/)
+  assert.doesNotMatch(runtime, /contentChanged/)
+  assert.match(runtime, /duration:420/)
   assert.doesNotMatch(runtime, /href\.startsWith\("\/area-restrita\/ranking"\)[\s\S]{0,260}location\.assign/)
   assert.doesNotMatch(behavior, /location\.assign/)
   assert.match(runtime, /data-sl-nav-motion/)
   assert.match(runtime, /ensureQuizVisible/)
+  assert.match(runtime, /removeLateArrivalBanner/)
+  assert.match(runtime, /sl-r13-native-clock/)
+  assert.match(runtime, /slR13Presence/)
+  assert.match(runtime, /slR13Record/)
 })

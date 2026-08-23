@@ -1,19 +1,17 @@
 "use strict";
 
 (() => {
-  const revision = "12";
+  const revision = "13";
   if (document.documentElement.dataset.windowsBetaRuntime === revision) return;
   document.documentElement.dataset.windowsBetaRuntime = revision;
 
   const style = document.createElement("style");
-  style.id = "sl-windows-runtime-r2";
+  style.id = "sl-windows-runtime-r13";
   style.textContent = `
     .sl-b7-trophy, .sl-trophy-3d, .sl-r3-card-trophy { display:none !important; }
     .sl-r6-podium-header > svg, .sl-r6-podium-header > .sl-b7-trophy, .sl-r6-podium-header [data-lucide="trophy"] { display:none !important; }
     .sl-b7-route-shield { display:none !important; }
-    .sl-runtime-route-cover { position:fixed; inset:0; z-index:244; pointer-events:none; display:grid; place-items:center; background:#fffaf0; opacity:0; }
-    .sl-runtime-route-cover::after { content:""; width:24px; height:24px; border:3px solid rgba(143,25,52,.18); border-top-color:#8f1934; border-radius:50%; animation:slR11RouteSpin .7s linear infinite; }
-    @keyframes slR11RouteSpin{to{transform:rotate(360deg)}}
+    .sl-runtime-route-cover { position:fixed; inset:0; z-index:244; pointer-events:none; background:rgba(255,250,240,.28); opacity:0; backdrop-filter:blur(.6px); }
     main.sl-r12-quiz-visible { display:block !important; visibility:visible !important; opacity:1 !important; filter:none !important; }
     .sl-r4-presence-locked { margin-top:16px; display:flex; align-items:center; gap:12px; border:1px solid #e2c86f; border-radius:18px; background:linear-gradient(145deg,#fffaf0,#fff3cf); padding:12px 14px; color:#6f541a; font-size:14px; line-height:1.45; box-shadow:0 8px 22px rgba(125,91,21,.08); }
     .sl-r6-clock { position:relative; width:42px; height:42px; flex:0 0 42px; border:3px solid #8f1934; border-radius:50%; background:radial-gradient(circle at 50% 50%,#fff 0 55%,#fff6dc 56% 100%); box-shadow:inset 0 0 0 2px rgba(212,175,55,.34),0 5px 12px rgba(92,45,25,.15); }
@@ -24,10 +22,13 @@
     .sl-r6-clock-second { height:15px; width:1px; background:#d49b20; transition:transform 160ms cubic-bezier(.2,.8,.2,1); }
     .sl-r6-clock-center { position:absolute; left:50%; top:50%; width:6px; height:6px; border-radius:50%; background:#8f1934; transform:translate(-50%,-50%); box-shadow:0 0 0 2px #fff3c4; }
     .sl-r8-native-clock { width:32px; height:32px; flex:0 0 32px; color:#8f1934; overflow:visible; }
-    .sl-r8-native-clock .sl-clock-hour,.sl-r8-native-clock .sl-clock-minute,.sl-r8-native-clock .sl-clock-second { transform-box:view-box; transform-origin:12px 12px; stroke:currentColor; stroke-linecap:round; }
+    .sl-r8-native-clock .sl-clock-hour,.sl-r8-native-clock .sl-clock-minute,.sl-r8-native-clock .sl-clock-second,.sl-r13-native-clock .sl-clock-hour,.sl-r13-native-clock .sl-clock-minute,.sl-r13-native-clock .sl-clock-second { transform-box:view-box; transform-origin:12px 12px; stroke:currentColor; stroke-linecap:round; }
     .sl-r8-native-clock .sl-clock-second { stroke:#d49b20; }
-    .sl-r8-clock-source { overflow:visible; }
-    .sl-r8-clock-source polyline,.sl-r8-clock-source path:last-child { transform-box:view-box; transform-origin:center; transition:transform 160ms linear; }
+    .sl-r13-native-clock { overflow:visible; }
+    .sl-r13-native-clock .sl-r13-original-hands { opacity:0; }
+    .sl-r13-native-clock .sl-clock-hour { stroke-width:2.25; }
+    .sl-r13-native-clock .sl-clock-minute { stroke-width:1.8; }
+    .sl-r13-native-clock .sl-clock-second { stroke:#d49b20; stroke-width:1.15; transition:transform 120ms linear; }
     .sl-r6-lock-copy strong { display:block; color:#6f1d30; font-size:13px; }
     .sl-r6-lock-copy span { display:block; margin-top:2px; font-size:12px; }
     .sl-b9-private-presence { animation:slR6DailyLoginEnter 440ms cubic-bezier(.2,.78,.2,1) both !important; }
@@ -88,12 +89,15 @@
     [data-sl-nav-motion="panel"] svg { animation:slR11Panel 2.2s ease-in-out infinite; }
     [data-sl-nav-motion="scale"] svg { animation:slR10ScaleMotion 2.1s ease-in-out infinite; }
     [data-sl-nav-motion="quiz"] svg { animation:slR11Quiz 2s ease-in-out infinite; }
-    [data-sl-nav-motion="clock"] svg { animation:slR11Clock 8s steps(12,end) infinite; }
+    [data-sl-nav-motion="presence"] svg { animation:slR13Presence 2.4s ease-in-out infinite; }
+    [data-sl-nav-motion="record"] svg { animation:slR13Record 2.2s ease-in-out infinite; }
+    [data-sl-nav-motion="clock"] svg { animation:none; }
     @keyframes slR11Library{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2px) rotate(-4deg)}}
     @keyframes slR11Page{0%,100%{transform:rotateY(0) translateY(0)}50%{transform:rotateY(-18deg) translateY(-1px)}}
     @keyframes slR11Panel{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.08)}}
     @keyframes slR11Quiz{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.1) rotate(4deg)}}
-    @keyframes slR11Clock{to{transform:rotate(360deg)}}
+    @keyframes slR13Presence{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(-1px) scale(1.06)}60%{transform:translateY(0) scale(1)}}
+    @keyframes slR13Record{0%,100%{transform:rotate(0) scale(1)}35%{transform:rotate(-3deg) scale(1.04)}65%{transform:rotate(3deg) scale(1.04)}}
     .sl-r10-profile-source { display:none !important; }
     .sl-r10-profile-icon { position:relative; width:25px; height:25px; flex:0 0 25px; border-radius:50%; background:linear-gradient(145deg,#fff2d6,#f2c899); box-shadow:inset -2px -2px 0 rgba(91,45,34,.12); animation:slR7OriginalPanelMotion 2.6s ease-in-out infinite; }
     .sl-r10-profile-icon::before { content:""; position:absolute; left:8px; top:4px; width:9px; height:9px; border-radius:50%; background:#8f1934; }
@@ -131,6 +135,7 @@
     @keyframes slR5CupFloat { 0%,100%{transform:perspective(380px) translateY(0) rotateY(-9deg) rotateX(2deg)} 50%{transform:perspective(380px) translateY(-5px) rotateY(10deg) rotateX(-2deg)} }
     @media (prefers-reduced-motion:reduce) { .sl-r5-card-trophy { animation:none !important; } }
   `;
+  document.querySelectorAll('style[id^="sl-windows-runtime-"]').forEach((element) => element.remove());
   document.head.appendChild(style);
 
   function text(element) {
@@ -193,7 +198,7 @@
       if (second) second.style.transform = `translateX(-50%) rotate(${seconds * 6}deg)`;
       clock.setAttribute("aria-label", `Horário atual: ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`);
     });
-    root.querySelectorAll(".sl-r8-native-clock").forEach((clock) => {
+    root.querySelectorAll(".sl-r8-native-clock,.sl-r13-native-clock").forEach((clock) => {
       const hour = clock.querySelector(".sl-clock-hour");
       const minute = clock.querySelector(".sl-clock-minute");
       const second = clock.querySelector(".sl-clock-second");
@@ -486,15 +491,27 @@
   }
 
   function enhanceDelayClocks() {
-    document.querySelectorAll('.sl-r8-native-clock[data-sl-generated-delay="true"],.sl-r7-delay-clock').forEach((element) => element.remove());
-    document.querySelectorAll('.sl-r7-delay-source').forEach((element) => element.classList.remove('sl-r7-delay-source'));
-    const targets = [...document.querySelectorAll('a[href*="/atrasos"],button,main h1,main h2,main h3')].filter((element) => /Atrasos|Pontualidade/.test(text(element)));
+    const targets = [...document.querySelectorAll('[data-sl-nav-motion="clock"],a[href*="/atrasos"],button,main h1,main h2,main h3')].filter((element) => element.matches('[data-sl-nav-motion="clock"]') || /Atrasos|Pontualidade/.test(text(element)));
     for (const target of targets) {
       const source = target.querySelector("svg") || target.parentElement?.querySelector(":scope > svg");
-      source?.classList.add("sl-r8-clock-source");
+      if (!source || source.dataset.slClockHands === "true") continue;
+      const originalHands = source.querySelector("polyline");
+      const face = source.querySelector("circle");
+      if (!originalHands || !face) continue;
+      source.dataset.slClockHands = "true";
+      source.classList.add("sl-r13-native-clock");
+      originalHands.classList.add("sl-r13-original-hands");
+      for (const [className, y2] of [["sl-clock-hour","8"],["sl-clock-minute","6"],["sl-clock-second","5"]]) {
+        const hand = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        hand.setAttribute("class", className);
+        hand.setAttribute("x1", "12"); hand.setAttribute("y1", "12"); hand.setAttribute("x2", "12"); hand.setAttribute("y2", y2);
+        source.appendChild(hand);
+      }
+      const center = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      center.setAttribute("cx", "12"); center.setAttribute("cy", "12"); center.setAttribute("r", "1.15"); center.setAttribute("fill", "currentColor"); center.setAttribute("stroke", "none");
+      source.appendChild(center);
     }
-    const seconds = new Date(nowForPresence()).getSeconds();
-    document.querySelectorAll(".sl-r8-clock-source polyline,.sl-r8-clock-source path:last-child").forEach((hand) => { hand.style.transform = `rotate(${seconds * 6}deg)`; });
+    updatePresenceClock();
   }
 
   const catholicEmojis = ["✝️","⛪","🙏","🕊️","🕯️","📖","🌹","❤️‍🔥","👼","🛐"];
@@ -633,29 +650,9 @@
     const cover = document.createElement("div");
     cover.className = "sl-runtime-route-cover";
     document.body.appendChild(cover);
-    cover.style.opacity = "1";
-    const origin = location.href;
-    const initialMain = document.querySelector("main");
-    const initialContent = text(initialMain).slice(0, 400);
-    const startedAt = Date.now();
-    const finish = () => {
-      if (!cover.isConnected) return;
-      const main = document.querySelector("main");
-      main?.getAnimations?.().filter((animation) => animation.id === "sl-page-enter" || animation.id === "sl-b7-route-enter").forEach((animation) => animation.cancel());
-      main?.animate?.([{ opacity:.88, transform:"translate3d(0,3px,0)" },{ opacity:1, transform:"none" }], { duration:190, easing:"cubic-bezier(.2,.72,.2,1)" });
-      const animation = cover.animate([{ opacity:1 },{ opacity:0 }], { duration:170, fill:"forwards", easing:"ease-out" });
-      animation.finished.finally(() => cover.remove());
-    };
-    const watchdog = setTimeout(finish, 3_000);
-    const timer = setInterval(() => {
-      const currentMain = document.querySelector("main");
-      const routeChanged = location.href !== origin;
-      const contentChanged = currentMain !== initialMain || text(currentMain).slice(0, 400) !== initialContent;
-      if ((!routeChanged || !contentChanged) && Date.now() - startedAt < 2_800) return;
-      clearInterval(timer);
-      clearTimeout(watchdog);
-      setTimeout(finish, 70);
-    }, 40);
+    const animation = cover.animate([{ opacity:0 },{ opacity:.42, offset:.34 },{ opacity:0 }], { duration:420, fill:"forwards", easing:"cubic-bezier(.2,.72,.2,1)" });
+    animation.finished.finally(() => cover.remove());
+    setTimeout(() => cover.remove(), 520);
   }
 
   function ensureQuizVisible() {
@@ -665,6 +662,12 @@
     if (!main) return;
     main.classList.add("sl-r12-quiz-visible");
     main.getAnimations?.().filter((animation) => /(?:page|route|shield)/i.test(animation.id || "")).forEach((animation) => animation.cancel());
+  }
+
+  function removeLateArrivalBanner() {
+    document.querySelectorAll("aside").forEach((banner) => {
+      if (/Registro de pontualidade confirmado|teve um atraso confirmado/i.test(text(banner))) banner.remove();
+    });
   }
 
   document.addEventListener("click", (event) => {
@@ -681,7 +684,7 @@
   const observer = new MutationObserver(() => {
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(() => { scheduled = false; ensureQuizVisible(); fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); enhanceAnimatedNavigationIcons(); enhanceProfileIconAndInstalledState(); removeRedundantCopy(); enhancePersonalThemePicker(); expireTransientNotifications(); });
+    requestAnimationFrame(() => { scheduled = false; removeLateArrivalBanner(); ensureQuizVisible(); fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); enhanceAnimatedNavigationIcons(); enhanceProfileIconAndInstalledState(); removeRedundantCopy(); enhancePersonalThemePicker(); expireTransientNotifications(); });
   });
   observer.observe(document.documentElement, { childList:true, subtree:true });
   fixPodiumTrophies();
@@ -697,6 +700,7 @@
   removeRedundantCopy();
   enhancePersonalThemePicker();
   expireTransientNotifications();
+  removeLateArrivalBanner();
   ensureQuizVisible();
   setInterval(() => { applyFormationPresenceLock(); updatePresenceClock(); }, 1_000);
   setInterval(ensureQuizVisible, 500);

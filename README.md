@@ -10,15 +10,17 @@ Canal de testes para Windows, separado do Android estável.
 - A interface da Beta herda o Android sem badge, tema ou layout exclusivos de Windows.
 - As experiências em teste são empacotadas no executável e só entram após uma atualização nativa do Windows.
 
-## Beta atual — 0.1.0-beta.17
+## Beta atual — 0.1.0-beta.18
 
-Esta versão preserva todas as correções anteriores e corrige definitivamente a abertura do Quiz no Electron:
+Esta versão preserva todas as correções anteriores e conclui os ajustes do vídeo de 06:10:
 
-- abre o Quiz como documento completo no Windows, preservando a sessão;
-- remove o redirecionamento nativo concorrente que interrompia a tela;
-- cancela qualquer camada ou animação antiga capaz de ocultar o conteúdo do Quiz;
-- impede que o conteúdo de uma aba apareça durante a transição para outra;
-- anima os ícones originais, sem trocar seus desenhos;
+- mantém o Quiz dentro da sessão ativa, sem tela vazia nem retorno para a área pública;
+- reduz a transição a um véu curto e não bloqueante, sem misturar telas;
+- remove da Beta o banner repetitivo de atraso confirmado;
+- consolida o relatório em um único cartão por pessoa, com todos os totais e detalhes;
+- sincroniza os três ponteiros dos relógios com o Windows e mantém cada ponteiro independente;
+- anima os ícones originais de Presenças e Registro, sem trocar seus desenhos;
+- mantém somente a formação concluída mais recente em destaque e arquiva as anteriores;
 - permite editar toda a escala publicada e escolher uma única celebração do iLiturgia;
 - permite à pessoa escalada justificar sua falta na missa e registra isso no histórico correto;
 - bloqueia definitivamente a escolha pessoal da formação após o primeiro registro;
