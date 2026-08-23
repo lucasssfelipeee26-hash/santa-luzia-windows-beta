@@ -1,7 +1,7 @@
 "use strict";
 
 (() => {
-  const revision = "9";
+  const revision = "10";
   if (document.documentElement.dataset.windowsBetaRuntime === revision) return;
   document.documentElement.dataset.windowsBetaRuntime = revision;
 
@@ -74,9 +74,16 @@
     .sl-r7-animate-books { animation:slR7OriginalBookMotion 2.8s ease-in-out infinite; }
     .sl-r7-animate-liturgy { animation:slR7OriginalPageMotion 3.2s ease-in-out infinite; }
     .sl-r7-animate-panel { animation:slR7OriginalPanelMotion 2.6s ease-in-out infinite; }
+    .sl-r7-animate-scale { animation:slR10ScaleMotion 2.8s ease-in-out infinite; }
     @keyframes slR7OriginalBookMotion{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-1px) rotate(-2deg)}}
     @keyframes slR7OriginalPageMotion{0%,100%{transform:perspective(60px) rotateY(0)}50%{transform:perspective(60px) rotateY(-10deg)}}
     @keyframes slR7OriginalPanelMotion{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.03)}}
+    @keyframes slR10ScaleMotion{0%,100%{transform:translateY(0) rotate(0)}45%{transform:translateY(-1px) rotate(-3deg)}65%{transform:translateY(-1px) rotate(2deg)}}
+    .sl-r10-profile-source { display:none !important; }
+    .sl-r10-profile-icon { position:relative; width:25px; height:25px; flex:0 0 25px; border-radius:50%; background:linear-gradient(145deg,#fff2d6,#f2c899); box-shadow:inset -2px -2px 0 rgba(91,45,34,.12); animation:slR7OriginalPanelMotion 2.6s ease-in-out infinite; }
+    .sl-r10-profile-icon::before { content:""; position:absolute; left:8px; top:4px; width:9px; height:9px; border-radius:50%; background:#8f1934; }
+    .sl-r10-profile-icon::after { content:""; position:absolute; left:5px; bottom:3px; width:15px; height:8px; border-radius:10px 10px 5px 5px; background:#8f1934; }
+    [data-web-download-only] { display:none !important; }
     .sl-r7-books-icon,.sl-r7-liturgy-icon,.sl-r7-panel-icon { position:relative; display:inline-block; width:28px; height:28px; flex:0 0 28px; }
     .sl-r7-books-icon i { position:absolute; left:3px; width:22px; height:6px; border-radius:2px; box-shadow:0 2px 3px rgba(65,32,29,.14); transform-origin:50% 50%; animation:slR7BookShift 3s ease-in-out infinite; }
     .sl-r7-books-icon i:nth-child(1){bottom:3px;background:#7b1326}.sl-r7-books-icon i:nth-child(2){bottom:10px;background:#d4af37;animation-delay:-1s}.sl-r7-books-icon i:nth-child(3){bottom:17px;background:#315e4d;animation-delay:-2s}
@@ -397,6 +404,10 @@
 
   let myRecordsPromise = null;
   function renderMyAdministrativeRecords() {
+    if (document.querySelector('[data-windows-beta-personal-report="true"]')) {
+      document.querySelectorAll(".sl-r7-my-records").forEach((element) => element.remove());
+      return;
+    }
     if (!location.pathname.includes("/area-restrita/membro") || document.querySelector(".sl-r7-my-records")) return;
     if (!myRecordsPromise) myRecordsPromise = fetch("/api/auth/me", { cache:"no-store", credentials:"same-origin" }).then((response) => response.ok ? response.json() : null)
       .then(async (auth) => {
@@ -509,6 +520,7 @@
       { pattern:/Biblioteca/i, className:"sl-r7-animate-books" },
       { pattern:/Liturgia/i, className:"sl-r7-animate-liturgy" },
       { pattern:/Painel/i, className:"sl-r7-animate-panel" },
+      { pattern:/Escala/i, className:"sl-r7-animate-scale" },
     ];
     for (const element of document.querySelectorAll("a,button,h1,h2,h3")) {
       const content = text(element);
@@ -521,6 +533,18 @@
     }
   }
 
+  function enhanceProfileIconAndInstalledState() {
+    document.querySelectorAll("a,button").forEach((element) => {
+      const content = text(element);
+      if (/^(Baixar (o )?APP|Instalar aplicativo|Baixar aplicativo)$/i.test(content)) element.style.display = "none";
+      if (!/Meu perfil/i.test(content) || element.querySelector(".sl-r10-profile-icon")) return;
+      const source = element.querySelector("svg");
+      if (!source) return;
+      source.classList.add("sl-r10-profile-source");
+      const icon = document.createElement("span"); icon.className = "sl-r10-profile-icon"; icon.setAttribute("aria-hidden", "true"); source.after(icon);
+    });
+  }
+
   function removeRedundantCopy() {
     const patterns = [
       /aprenda, jogue e acompanhe sua evolução/i,
@@ -530,11 +554,13 @@
       /a versão simplificada foi removida/i,
       /whatajong completo, com sons, peças ilustradas/i,
       /o mesmo jogo apresentado como base/i,
+      /registros administrativos são privados/i,
     ];
     document.querySelectorAll("p,small,span,div").forEach((element) => {
       const content = text(element);
       if (!content || content.length > 360 || !patterns.some((pattern) => pattern.test(content))) return;
-      if (/escala atualizada e salva/i.test(content)) element.closest(".flex.items-center")?.classList.add("sl-r7-copy-removed");
+      if (/registros administrativos são privados/i.test(content)) element.closest(".flex")?.classList.add("sl-r7-copy-removed");
+      else if (/escala atualizada e salva/i.test(content)) element.closest(".flex.items-center")?.classList.add("sl-r7-copy-removed");
       else element.classList.add("sl-r7-copy-removed");
     });
   }
@@ -628,7 +654,7 @@
   const observer = new MutationObserver(() => {
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); enhanceAnimatedNavigationIcons(); removeRedundantCopy(); enhancePersonalThemePicker(); expireTransientNotifications(); });
+    requestAnimationFrame(() => { scheduled = false; fixPodiumTrophies(); applyFormationPresenceLock(); enhancePresenceCenter(); organizePublishedScale(); renderMyAdministrativeRecords(); organizeFormationManagement(); enhanceDelayClocks(); enhanceProfileAndSoundControls(); enhanceAnimatedNavigationIcons(); enhanceProfileIconAndInstalledState(); removeRedundantCopy(); enhancePersonalThemePicker(); expireTransientNotifications(); });
   });
   observer.observe(document.documentElement, { childList:true, subtree:true });
   fixPodiumTrophies();
@@ -640,6 +666,7 @@
   enhanceDelayClocks();
   enhanceProfileAndSoundControls();
   enhanceAnimatedNavigationIcons();
+  enhanceProfileIconAndInstalledState();
   removeRedundantCopy();
   enhancePersonalThemePicker();
   expireTransientNotifications();
