@@ -31,7 +31,9 @@ test("isola a presença semanal pelo usuário autenticado", () => {
 
 test("preserva o snapshot estável do Android", () => {
   assert.equal(config.androidBaseCommit, "e4be377dd6b59505b9fd7e8e9e3fd92caf3c7b77")
-  assert.equal(config.versionName, "0.1.0-beta.19")
+  assert.equal(config.channel, "windows-beta")
+  assert.equal(config.updateRepository, "lucasssfelipeee26-hash/santa-luzia-windows-beta")
+  assert.match(config.versionName, /^0\.1\.0-beta\.\d+$/)
 })
 
 test("mantém o Quiz na sessão ativa e limita a transição visual", () => {
