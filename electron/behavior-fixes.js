@@ -1,15 +1,24 @@
 "use strict";
 
 (() => {
-  const PATCH = "0.1.0-beta.4";
+  const PATCH = "0.1.0-beta.20-scroll-stability";
   const PRESENCE_KEY = "santa-luzia:windows-beta:daily-presence-v1";
   const NAV_TIMEOUT = 650;
+  const NativeMutationObserver = window.MutationObserver;
   let observer = null;
   let scheduled = false;
   let lastRoute = "";
+  let lastScrollRoute = "";
+  let lastScrollY = 0;
+  let lastScrollIntent = 0;
+  let lastScrollIntentAt = 0;
+  let navigationGraceUntil = 0;
+  let restoringScroll = false;
+  let lastTouchY = null;
 
   const normalize = (value) => String(value || "").replace(/\s+/g, " ").trim();
   const text = (el) => normalize(el?.textContent);
+  const routeKey = () => `${location.pathname}${location.search}${location.hash}`;
 
   function todayCuiaba() {
     return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Cuiaba" }).format(new Date());
@@ -77,6 +86,7 @@
     const style = document.createElement("style");
     style.id = "sl-beta4-behavior-style";
     style.textContent = `
+      html,body,main,[role="main"] { overflow-anchor:none !important; }
       @keyframes slB4Rise { from { opacity:0; transform:translateY(8px) scale(.985) } to { opacity:1; transform:none } }
       @keyframes slB4Pulse { 0% { transform:scale(.94); opacity:.55 } 60% { transform:scale(1.08); opacity:1 } 100% { transform:scale(1); opacity:1 } }
       @keyframes slB4ToastIn { from { opacity:0; transform:translate(-50%,-14px) scale(.96) } to { opacity:1; transform:translate(-50%,0) scale(1) } }
@@ -102,6 +112,115 @@
       @media (prefers-reduced-motion:reduce) { #sl-daily-presence,.sl-task-fullscreen,.sl-b4-feedback,#sl-daily-presence.sl-checked .slp-icon { animation:none !important; } }
     `;
     document.head.appendChild(style);
+  }
+
+  function isRuntimeSelfMutation(record) {
+    const target = record?.target instanceof Element ? record.target : record?.target?.parentElement;
+    if (!target) return false;
+    if (target.matches?.('strong[data-sl-full-name]') || target.closest?.('strong[data-sl-full-name]')) return true;
+    if (target.matches?.('.sl-r4-presence-locked') || target.closest?.('.sl-r4-presence-locked')) return true;
+    if (location.pathname.includes("/area-restrita/moderador/tema") && target.matches?.("main") && /Cores do aplicativo/.test(text(target))) return true;
+    return false;
+  }
+
+  function installMutationObserverGuard() {
+    if (!NativeMutationObserver || window.MutationObserver?.__santaLuziaGuarded) return;
+    class GuardedMutationObserver {
+      constructor(callback) {
+        this.callback = callback;
+        this.native = new NativeMutationObserver((records) => {
+          const filtered = records.filter((record) => !isRuntimeSelfMutation(record));
+          if (filtered.length) this.callback(filtered, this);
+        });
+      }
+      observe(target, options) { return this.native.observe(target, options); }
+      disconnect() { return this.native.disconnect(); }
+      takeRecords() { return this.native.takeRecords().filter((record) => !isRuntimeSelfMutation(record)); }
+    }
+    Object.defineProperty(GuardedMutationObserver, "__santaLuziaGuarded", { value: true });
+    window.MutationObserver = GuardedMutationObserver;
+  }
+
+  function markScrollIntent(direction) {
+    if (!direction) return;
+    lastScrollIntent = direction > 0 ? 1 : -1;
+    lastScrollIntentAt = performance.now();
+  }
+
+  function resetScrollTracking() {
+    lastScrollRoute = routeKey();
+    lastScrollY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+    restoringScroll = false;
+  }
+
+  function installScrollStability() {
+    if (document.documentElement.dataset.slScrollStability === PATCH) return;
+    document.documentElement.dataset.slScrollStability = PATCH;
+    resetScrollTracking();
+
+    window.addEventListener("wheel", (event) => markScrollIntent(event.deltaY), { capture: true, passive: true });
+    window.addEventListener("touchstart", (event) => { lastTouchY = event.touches?.[0]?.clientY ?? null; }, { capture: true, passive: true });
+    window.addEventListener("touchmove", (event) => {
+      const current = event.touches?.[0]?.clientY;
+      if (typeof current === "number" && typeof lastTouchY === "number") markScrollIntent(lastTouchY - current);
+      lastTouchY = typeof current === "number" ? current : lastTouchY;
+    }, { capture: true, passive: true });
+    window.addEventListener("touchend", () => { lastTouchY = null; }, { capture: true, passive: true });
+
+    document.addEventListener("keydown", (event) => {
+      if (["ArrowDown", "PageDown", "End", " "].includes(event.key)) markScrollIntent(1);
+      if (["ArrowUp", "PageUp", "Home"].includes(event.key)) markScrollIntent(-1);
+    }, true);
+
+    document.addEventListener("click", (event) => {
+      const anchor = event.target instanceof Element ? event.target.closest("a[href]") : null;
+      if (!anchor) return;
+      const href = anchor.getAttribute("href") || "";
+      if (!href || href.startsWith("#")) return;
+      try {
+        const destination = new URL(href, location.href);
+        if (destination.origin === location.origin && destination.href !== location.href) navigationGraceUntil = performance.now() + 1500;
+      } catch {}
+    }, true);
+
+    window.addEventListener("popstate", () => { navigationGraceUntil = performance.now() + 1500; resetScrollTracking(); });
+    window.addEventListener("hashchange", () => { navigationGraceUntil = performance.now() + 1000; resetScrollTracking(); });
+
+    window.addEventListener("scroll", () => {
+      const route = routeKey();
+      const currentY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+      if (route !== lastScrollRoute) {
+        lastScrollRoute = route;
+        lastScrollY = currentY;
+        restoringScroll = false;
+        return;
+      }
+      if (restoringScroll) return;
+
+      const now = performance.now();
+      const drop = lastScrollY - currentY;
+      const accidentalReset = now > navigationGraceUntil
+        && lastScrollIntent > 0
+        && now - lastScrollIntentAt < 1200
+        && lastScrollY > 140
+        && drop > Math.max(90, lastScrollY * 0.18);
+
+      if (!accidentalReset) {
+        lastScrollY = currentY;
+        return;
+      }
+
+      const restoreY = lastScrollY;
+      restoringScroll = true;
+      requestAnimationFrame(() => {
+        const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        window.scrollTo({ top: Math.min(restoreY, maxY), left: 0, behavior: "auto" });
+        requestAnimationFrame(() => {
+          lastScrollY = Math.max(0, window.scrollY || document.documentElement.scrollTop || 0);
+          restoringScroll = false;
+        });
+      });
+    }, { passive: true });
   }
 
   function isLoggedArea() {
@@ -234,7 +353,7 @@
   }
 
   function replayOnRouteChange() {
-    const route = `${location.pathname}${location.search}${location.hash}`;
+    const route = routeKey();
     if (route === lastRoute) return;
     lastRoute = route;
     const main = document.querySelector("main");
@@ -262,9 +381,11 @@
   }
 
   function start() {
+    installMutationObserverGuard();
+    installScrollStability();
     apply();
     observer?.disconnect();
-    observer = new MutationObserver(schedule);
+    observer = new NativeMutationObserver(schedule);
     observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-state", "aria-current"] });
     window.addEventListener("popstate", schedule);
     window.addEventListener("hashchange", schedule);
